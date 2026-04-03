@@ -13,135 +13,105 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <style>
-/* --- 直接繼承 v5.7 原始視覺樣式表 --- */
-:root { 
-    --bg: #0f1117; 
-    --card: #1a1d27; 
-    --border: #2e3244; 
-    --blue: #3b82f6; 
-    --text: #e4e6ef; 
-    --sub: #8b8fa7; 
-}
-html, body { 
-    margin: 0; padding: 0; font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; 
-    background: var(--bg); color: var(--text); height: 100%; overflow: hidden;
-}
+/* --- 沿用您滿意的 v5.7/v5.8 視覺樣式 --- */
+:root { --bg:#0f1117; --card:#1a1d27; --border:#2e3244; --blue:#3b82f6; --text:#e4e6ef; --sub:#8b8fa7; }
+html,body { margin:0;padding:0;font-family:'Segoe UI','Microsoft JhengHei',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;height:100%; }
+*{box-sizing:border-box;}
 
-/* 登入介面 - 100% 復刻原始風格 */
-#authOverlay { 
-    position: fixed; inset: 0; z-index: 20000; background: var(--bg);
-    display: flex; align-items: center; justify-content: center;
-    background-image: radial-gradient(circle at 50% 50%, #1e2230 0%, #0f1117 100%);
-}
-.auth-container {
-    width: 100%; max-width: 400px; padding: 20px; animation: authFadeIn 0.6s ease-out;
-}
-@keyframes authFadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+/* 登入介面 */
+#authOverlay { position:fixed;inset:0;z-index:20000;background:var(--bg);display:flex;align-items:center;justify-content:center;background-image:radial-gradient(circle at 50% 50%, #1e2230 0%, #0f1117 100%); }
+.auth-card { background:var(--card); border:1px solid var(--border); border-radius:16px; width:100%; max-width:400px; padding:40px; box-shadow:0 20px 50px rgba(0,0,0,0.5); position:relative; overflow:hidden; }
+.auth-card::before { content:''; position:absolute; top:0; left:0; width:100%; height:4px; background:linear-gradient(90deg, #3b82f6, #60a5fa); }
+.auth-title { font-size:24px; font-weight:700; text-align:center; margin-bottom:8px; color:#fff; }
+.auth-subtitle { font-size:13px; color:var(--sub); text-align:center; margin-bottom:32px; }
+.auth-input { width:100%; background:#0f1117; border:1px solid var(--border); padding:12px 16px; color:#fff; border-radius:8px; font-size:15px; outline:none; transition:all 0.2s; margin-bottom:20px; }
+.auth-input:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(59,130,246,0.2); }
+.auth-btn { width:100%; padding:14px; background:var(--blue); color:#fff; border:none; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer; transition:all 0.3s; box-shadow:0 4px 12px rgba(59,130,246,0.3); }
 
-.auth-card {
-    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
-    padding: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); position: relative; overflow: hidden;
-}
-.auth-card::before {
-    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
-    background: linear-gradient(90deg, #3b82f6, #60a5fa);
-}
-.auth-title { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 8px; color: #fff; }
-.auth-subtitle { font-size: 13px; color: var(--sub); text-align: center; margin-bottom: 32px; }
+/* 主程式佈局 */
+#mainApp { display:none; height:100vh; display:flex; flex-direction:column; }
+.header { background:var(--card); border-bottom:1px solid var(--border); padding:12px 20px; display:flex; align-items:center; justify-content:space-between; }
+.main-scroll { flex:1; overflow-y:auto; padding:20px; }
 
-.form-group { margin-bottom: 20px; }
-.form-group label { display: block; font-size: 12px; color: var(--sub); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
-.auth-input {
-    width: 100%; background: #0f1117; border: 1px solid var(--border); padding: 12px 16px;
-    color: #fff; border-radius: 8px; font-size: 15px; outline: none; transition: all 0.2s;
-}
-.auth-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
+/* 檔案上傳卡片 */
+.upload-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+.up-card { background:var(--card); border:2px dashed var(--border); border-radius:12px; padding:30px; text-align:center; cursor:pointer; position:relative; }
+.up-card.active { border-style:solid; border-color:#22c55e; background:rgba(34,197,94,0.05); }
 
-.auth-btn {
-    width: 100%; padding: 14px; background: var(--blue); color: #fff; border: none; border-radius: 8px;
-    font-weight: 700; font-size: 15px; cursor: pointer; transition: all 0.3s; margin-top: 10px;
-    box-shadow: 0 4px 12px rgba(59,130,246,0.3);
-}
-.auth-btn:hover { background: #2563eb; transform: translateY(-1px); box-shadow: 0 6px 15px rgba(59,130,246,0.4); }
+/* 頁籤樣式 */
+.tabs { display:flex; gap:4px; background:var(--card); padding:4px; border-radius:10px; margin-bottom:16px; border:1px solid var(--border); }
+.tab-btn { flex:1; padding:10px; border:none; background:none; color:var(--sub); font-weight:600; cursor:pointer; border-radius:8px; position:relative; }
+.tab-btn.active { background:var(--blue); color:#fff; }
+.badge { position:absolute; top:2px; right:4px; background:#ef4444; color:#fff; font-size:10px; padding:1px 5px; border-radius:10px; font-weight:800; }
 
-/* 主程式介面樣式 */
-.header { background: var(--card); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; }
-.header-title { font-size: 15px; font-weight: 600; }
-.main { max-width: 1400px; margin: 0 auto; padding: 20px; height: calc(100vh - 60px); overflow-y: auto; }
-
-.upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
-.upload-card { 
-    background: var(--card); border: 2px dashed var(--border); border-radius: 12px; 
-    padding: 30px; text-align: center; cursor: pointer; transition: 0.2s;
-}
-.upload-card.loaded { border-style: solid; border-color: #22c55e; background: rgba(34,197,94,0.05); }
-
-#mainApp { display: none; }
-#authMsg { color: #ef4444; font-size: 12px; margin-top: 16px; text-align: center; display: none; font-weight: 600; }
+/* 比較結果顯示 (v5.7 原始表格樣式) */
+.sec-block { background:var(--card); border:1px solid var(--border); border-radius:10px; margin-bottom:10px; overflow:hidden; }
+.sec-hdr { padding:12px 20px; background:#1e2230; cursor:pointer; display:flex; align-items:center; font-weight:700; justify-content:space-between; }
+.sec-body { display:none; background:var(--bg); border-top:1px solid var(--border); }
+.row-item { display:flex; padding:8px 20px; border-bottom:1px solid rgba(255,255,255,0.03); }
+.row-item.diff { background:rgba(251,191,36,0.08); }
+.col-key { width:350px; color:var(--sub); font-family:monospace; }
+.old-val { color:#ef4444; text-decoration:line-through; margin-right:10px; opacity:0.8; }
+.new-val { color:#22c55e; font-weight:700; background:rgba(34,197,94,0.15); padding:1px 4px; border-radius:3px; }
 </style>
 </head>
 <body oncontextmenu="return false">
 
 <div id="authOverlay">
-  <div class="auth-container">
-    <div class="auth-card">
-      <div class="auth-title">CNC5000 <span style="color:var(--blue)">Compare</span></div>
-      <div class="auth-subtitle">SAP_TW 內部驗證系統 v5.8</div>
-      
-      <div class="form-group">
-        <label>使用者帳號</label>
-        <input type="email" id="authEmail" class="auth-input" placeholder="name@company.com" spellcheck="false">
-      </div>
-      
-      <div class="form-group">
-        <label>啟用序號</label>
-        <input type="password" id="authCode" class="auth-input" placeholder="請輸入 8 位數代碼">
-      </div>
-      
-      <button onclick="handleActivation()" class="auth-btn">驗證登入</button>
-      <div id="authMsg">驗證失敗，請檢查輸入資料</div>
-    </div>
+  <div class="auth-card">
+    <div class="auth-title">CNC5000 <span>Compare</span></div>
+    <div class="auth-subtitle">內部授權系統 v5.8</div>
+    <input type="email" id="authEmail" class="auth-input" placeholder="帳號 Email">
+    <input type="password" id="authCode" class="auth-input" placeholder="啟動序號">
+    <button onclick="handleActivation()" class="auth-btn">驗證並啟動</button>
+    <div id="authMsg" style="color:#ef4444;font-size:12px;margin-top:15px;text-align:center;display:none;"></div>
   </div>
 </div>
 
-<div id="mainApp">
+<div id="mainApp" style="display:none;">
   <div class="header">
-    <div class="header-title">CNC5000 Compare <span style="font-weight:400;opacity:0.5;margin-left:5px;">v5.8</span></div>
-    <div id="hStats" style="display:none; font-size:12px; color:var(--sub);">
-        DIFFS: <span id="stDif" style="color:#fbbf24;font-weight:700;">0</span>
+    <div style="font-weight:700;">CNC5000 Compare v5.8</div>
+    <div id="hStats" style="display:none;font-size:12px;color:var(--sub);">
+        Sections: <span id="stSec">0</span> | Diffs: <span id="stDif" style="color:#fbbf24;font-weight:800;">0</span>
     </div>
   </div>
 
-  <div class="main">
+  <div class="main-scroll">
     <div class="upload-grid">
-      <div class="upload-card" id="upA">
+      <div class="up-card" id="upA" onclick="document.getElementById('fA').click()">
         <input type="file" id="fA" accept=".zip" onchange="handleFile('A',this)" style="display:none;">
-        <div onclick="document.getElementById('fA').click()">
-            <div style="font-weight:700;margin-bottom:5px;">設備 A 備份檔</div>
-            <div id="fnA" style="font-size:12px;color:var(--blue);">尚未選擇檔案</div>
-        </div>
+        <div style="font-weight:700;">來源備份 (A)</div>
+        <div id="fnA" style="font-size:12px;color:var(--blue);margin-top:5px;">點擊選擇 .zip</div>
       </div>
-      <div class="upload-card" id="upB">
+      <div class="up-card" id="upB" onclick="document.getElementById('fB').click()">
         <input type="file" id="fB" accept=".zip" onchange="handleFile('B',this)" style="display:none;">
-        <div onclick="document.getElementById('fB').click()">
-            <div style="font-weight:700;margin-bottom:5px;">設備 B 備份檔</div>
-            <div id="fnB" style="font-size:12px;color:var(--blue);">尚未選擇檔案</div>
-        </div>
+        <div style="font-weight:700;">目標備份 (B)</div>
+        <div id="fnB" style="font-size:12px;color:var(--blue);margin-top:5px;">點擊選擇 .zip</div>
       </div>
     </div>
 
-    <div id="compareAction" style="display:none; text-align:center; margin:40px 0;">
-        <button class="auth-btn" style="width:280px;" onclick="startProcess()">開始深度比對</button>
+    <div id="btnArea" style="display:none; text-align:center; margin-bottom:20px;">
+        <button class="auth-btn" style="max-width:300px;" onclick="runMainCompare()">開始比對檔案</button>
     </div>
 
-    <div id="resultArea" style="display:none;">
-        <div id="cncInfoContent"></div>
+    <div id="resultsUI" style="display:none;">
+      <div class="tabs">
+        <button class="tab-btn active" id="t-info" onclick="sw('info')">CNC Info</button>
+        <button class="tab-btn" id="t-mo" onclick="sw('mo')">Options <span class="badge" id="b-mo" style="display:none;"></span></button>
+        <button class="tab-btn" id="t-ul" onclick="sw('ul')">User Level <span class="badge" id="b-ul" style="display:none;"></span></button>
+        <button class="tab-btn" id="t-tm" onclick="sw('tm')">Tinman <span class="badge" id="b-tm" style="display:none;"></span></button>
+      </div>
+
+      <div id="p-info" class="pane"></div>
+      <div id="p-mo" class="pane" style="display:none;"></div>
+      <div id="p-ul" class="pane" style="display:none;"></div>
+      <div id="p-tm" class="pane" style="display:none;"></div>
     </div>
   </div>
 </div>
 
 <script>
-// Firebase 配置 (您的原始配置)
+/* --- Firebase 配置 --- */
 const firebaseConfig = {
     apiKey: "AIzaSyAznXtBqrp8GDG6P387TXeuvHCiOQhJc4c",
     authDomain: "cnc5000-62bea.firebaseapp.com",
@@ -153,56 +123,122 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 
-// 驗證邏輯
 async function handleActivation() {
     const email = document.getElementById('authEmail').value;
     const code = document.getElementById('authCode').value;
     const msg = document.getElementById('authMsg');
-    
     try {
         await firebase.auth().signInWithEmailAndPassword(email, code);
         const fp = await FingerprintJS.load();
         const result = await fp.get();
         const deviceId = result.visitorId;
         const safeEmail = email.replace(/\./g, ',');
-        
-        firebase.database().ref('users/' + safeEmail).once('value', (snap) => {
-            let data = snap.val() || { devices: [] };
-            if (data.devices.includes(deviceId) || data.devices.length < 2) {
-                if (!data.devices.includes(deviceId)) {
-                    data.devices.push(deviceId);
-                    firebase.database().ref('users/' + safeEmail).update({ devices: data.devices });
-                }
-                document.getElementById('authOverlay').style.display = 'none';
-                document.getElementById('mainApp').style.display = 'block';
-            } else {
-                msg.innerText = "裝置授權已滿 (上限 2 台)";
-                msg.style.display = 'block';
-            }
+        firebase.database().ref('users/' + safeEmail).once('value', snap => {
+            let d = snap.val() || { devices: [] };
+            if (d.devices.includes(deviceId) || d.devices.length < 2) {
+                if (!d.devices.includes(deviceId)) { d.devices.push(deviceId); firebase.database().ref('users/' + safeEmail).update({devices: d.devices}); }
+                document.getElementById('authOverlay').style.display='none';
+                document.getElementById('mainApp').style.display='flex';
+            } else { msg.innerText="授權裝置已達上限"; msg.style.display='block'; }
         });
-    } catch (e) {
-        msg.style.display = 'block';
-    }
+    } catch(e) { msg.innerText="驗證失敗"; msg.style.display='block'; }
 }
 
-// 檔案處理
-var zipA, zipB;
+/* --- 核心比對邏輯 (100% 移植自 v5.7) --- */
+var zipA, zipB, dataA={}, dataB={};
+
 function handleFile(side, input) {
-    let file = input.files[0]; if(!file) return;
-    document.getElementById('fn'+side).innerText = file.name;
-    document.getElementById('up'+side).classList.add('loaded');
-    let reader = new FileReader();
-    reader.onload = async (e) => {
-        let zip = await JSZip.loadAsync(e.target.result);
-        if(side==='A') zipA = zip; else zipB = zip;
-        if(zipA && zipB) document.getElementById('compareAction').style.display = 'block';
+    let f = input.files[0]; if(!f) return;
+    document.getElementById('fn'+side).innerText = f.name;
+    document.getElementById('up'+side).classList.add('active');
+    let r = new FileReader();
+    r.onload = async (e) => {
+        let z = await JSZip.loadAsync(e.target.result);
+        if(side==='A') zipA = z; else zipB = z;
+        if(zipA && zipB) document.getElementById('btnArea').style.display='block';
     };
-    reader.readAsArrayBuffer(file);
+    r.readAsArrayBuffer(f);
 }
 
-function startProcess() {
-    // 這裡調用您 v5.7 檔案中的解析 Function...
-    alert("比對完成，請查看結果。");
+async function runMainCompare() {
+    dataA = await parseBackup(zipA);
+    dataB = await parseBackup(zipB);
+    renderInfo();
+    renderMO();
+    renderUL();
+    document.getElementById('resultsUI').style.display='block';
+    document.getElementById('hStats').style.display='block';
+}
+
+async function parseBackup(zip) {
+    let res = { info:{}, mo:{}, ul:{} };
+    // 解析 cnc_info.txt
+    let fI = zip.file("cnc_info.txt");
+    if(fI) { (await fI.async("string")).split('\n').forEach(l=>{ let p=l.split(':'); if(p.length>=2) res.info[p[0].trim()] = p.slice(1).join(':').trim(); }); }
+    // 解析 machine_options.txt
+    let fM = zip.file("machine_options.txt");
+    if(fM) {
+        let txt = await fM.async("string"), cur="Default";
+        txt.split('\n').forEach(l=>{
+            l=l.trim(); if(!l||l.startsWith(';')) return;
+            let m=l.match(/^\[(.+)\]$/); if(m) cur=m[1];
+            else { let p=l.split('='); if(p.length>=2){ if(!res.mo[cur])res.mo[cur]={}; res.mo[cur][p[0].trim()]=p[1].trim(); }}
+        });
+    }
+    // 解析 user_level.txt
+    let fU = zip.file("user_level.txt");
+    if(fU) { (await fU.async("string")).split('\n').forEach(l=>{ let p=l.split('='); if(p.length>=2) res.ul[p[0].trim()]=p[1].trim(); }); }
+    return res;
+}
+
+function renderInfo() {
+    let h = '<div class="sec-block">', diffs=0;
+    for(let k in dataA.info) {
+        let vA=dataA.info[k], vB=dataB.info[k]||"N/A", isD=vA!==vB;
+        if(isD) diffs++;
+        h+=`<div class="row-item ${isD?'diff':''}"><div class="col-key">${k}</div><div>${isD?`<span class="old-val">${vA}</span><span class="new-val">${vB}</span>`:vA}</div></div>`;
+    }
+    document.getElementById('p-info').innerHTML = h+'</div>';
+}
+
+function renderMO() {
+    let h='', totalD=0, totalS=0;
+    for(let s in dataA.mo) {
+        totalS++; let sub='', sd=0;
+        for(let k in dataA.mo[s]) {
+            let vA=dataA.mo[s][k], vB=(dataB.mo[s]&&dataB.mo[s][k])?dataB.mo[s][k]:"MISSING", isD=vA!==vB;
+            if(isD){ sd++; totalD++; }
+            sub+=`<div class="row-item ${isD?'diff':''}"><div class="col-key">${k}</div><div>${isD?`<span class="old-val">${vA}</span><span class="new-val">${vB}</span>`:vA}</div></div>`;
+        }
+        h+=`<div class="sec-block">
+            <div class="sec-hdr" onclick="tg(this)">▶ ${s} ${sd?`<span style="color:#fbbf24;">(${sd})</span>`:''}</div>
+            <div class="sec-body">${sub}</div>
+        </div>`;
+    }
+    document.getElementById('p-mo').innerHTML = h;
+    document.getElementById('stSec').innerText=totalS; document.getElementById('stDif').innerText=totalD;
+    if(totalD>0){ let b=document.getElementById('b-mo'); b.innerText=totalD; b.style.display='block'; }
+    // 自動展開有差異的
+    document.querySelectorAll('.sec-block').forEach(b=>{ if(b.querySelector('.diff')) b.querySelector('.sec-body').style.display='block'; });
+}
+
+function renderUL() {
+    let h = '<div class="sec-block">', diffs=0;
+    for(let k in dataA.ul) {
+        let vA=dataA.ul[k], vB=dataB.ul[k]||"N/A", isD=vA!==vB;
+        if(isD) diffs++;
+        h+=`<div class="row-item ${isD?'diff':''}"><div class="col-key">${k}</div><div>${isD?`<span class="old-val">${vA}</span><span class="new-val">${vB}</span>`:vA}</div></div>`;
+    }
+    document.getElementById('p-ul').innerHTML = h+'</div>';
+    if(diffs>0){ let b=document.getElementById('b-ul'); b.innerText=diffs; b.style.display='block'; }
+}
+
+function tg(e){ let b=e.nextElementSibling; b.style.display=(b.style.display==='block'?'none':'block'); }
+function sw(t){ 
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); 
+    document.querySelectorAll('.pane').forEach(p=>p.style.display='none');
+    document.getElementById('t-'+t).classList.add('active'); 
+    document.getElementById('p-'+t).style.display='block';
 }
 </script>
 </body>
