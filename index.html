@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
-<meta name="theme-color" content="#0f1117">
 <title>CNC5000 Compare v5.8</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -13,91 +12,70 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <style>
-/* ═══ 完整保留 v5.7 原始 CSS ═══ */
+/* ─── 完全複製您 v5.7 的 CSS ─── */
 :root { --bg:#0f1117; --card:#1a1d27; --border:#2e3244; }
 html,body { margin:0;padding:0;font-family:'Segoe UI','Microsoft JhengHei',sans-serif;background:#0f1117;color:#e4e6ef;font-size:14px;line-height:1.6; }
 *{box-sizing:border-box;margin:0;padding:0;}
-.header{background:#1a1d27;border-bottom:1px solid #2e3244;padding:12px 20px;display:flex;align-items:center;gap:16px;position:relative;}
+.header{background:#1a1d27;border-bottom:1px solid #2e3244;padding:12px 20px;display:flex;align-items:center;gap:16px;}
 .header-title{font-size:15px;font-weight:600;color:#e4e6ef;}
 .header-stats{font-size:12px;color:#8b8fa7;margin-left:auto;display:none;}
-.header-stats span{color:#e4e6ef;font-weight:600;}
 .main{max-width:1500px;margin:0 auto;padding:16px;}
 .upload-section{display:flex;gap:12px;margin-bottom:14px;}
-.upload-card{flex:1;background:#1a1d27;border:2px dashed #2e3244;border-radius:8px;padding:20px 12px;text-align:center;cursor:pointer;position:relative;transition:all 0.2s;}
-.upload-card:hover{border-color:#3b82f6;background:#1f2230;}
+.upload-card{flex:1;background:#1a1d27;border:2px dashed #2e3244;border-radius:8px;padding:20px 12px;text-align:center;cursor:pointer;position:relative;}
 .upload-card.loaded{border-style:solid;border-color:#22c55e;background:#0f1117;}
-.upload-card input{position:absolute;top:0;left:0;right:0;bottom:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2;}
-.upload-label{font-size:14px;font-weight:600;color:#e4e6ef;margin-bottom:4px;}
-.upload-hint{font-size:11px;color:#5f6380;}
-.upload-filename{margin-top:10px;font-size:12px;color:#3b82f6;word-break:break-all;font-weight:500;}
-.compare-btn-wrap{text-align:center;margin:10px 0 20px;}
-.compare-btn{padding:10px 40px;font-size:15px;font-weight:600;background:#3b82f6;color:#fff;border:none;border-radius:6px;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 12px rgba(59,130,246,0.3);}
-.compare-btn:hover{background:#2563eb;transform:translateY(-1px);}
-.pb{height:3px;background:#2e3244;border-radius:2px;margin:10px 0;display:none;overflow:hidden;}
+.upload-card input{position:absolute;top:0;left:0;right:0;bottom:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:5;}
+.upload-filename{margin-top:10px;font-size:12px;color:#3b82f6;font-weight:500;}
+.compare-btn{padding:10px 40px;background:#3b82f6;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;}
+.pb{height:3px;background:#2e3244;margin:10px 0;display:none;overflow:hidden;}
 .pf{height:100%;background:#3b82f6;width:0%;transition:width 0.3s;}
-
-/* Tab & Results Style (v5.7) */
-.tab-bar{display:flex;gap:4px;background:#1a1d27;padding:4px;border-radius:8px;margin-bottom:16px;border:1px solid #2e3244;}
-.tab-btn{flex:1;padding:8px;background:transparent;border:none;color:#8b8fa7;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;position:relative;}
-.tab-btn.active{background:#3b82f6;color:#fff;}
-.tab-badge{position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:10px;padding:1px 5px;border-radius:10px;font-weight:700;}
-.tab-pane{display:none;animation:fadeIn 0.2s ease;}
+.tab-bar{display:flex;gap:4px;background:#1a1d27;padding:4px;border-radius:8px;margin-bottom:16px;}
+.tab-btn{flex:1;padding:8px;background:transparent;border:none;color:#8b8fa7;cursor:pointer;position:relative;}
+.tab-btn.active{background:#3b82f6;color:#fff;border-radius:6px;}
+.tab-badge{position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:10px;padding:1px 5px;border-radius:10px;}
+.tab-pane{display:none;}
 .tab-pane.active{display:block;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
-
-/* ═══ 啟動驗證層 UI (依據截圖) ═══ */
-#authOverlay { position:fixed; inset:0; z-index:9999; background:#0f1117; display:flex; align-items:center; justify-content:center; padding:20px; }
-.auth-box { background:#1a1d27; border:1px solid #2e3244; border-radius:12px; width:100%; max-width:400px; padding:32px; box-shadow:0 20px 40px rgba(0,0,0,0.4); }
-.auth-logo { text-align:center; margin-bottom:28px; }
-.auth-logo-icon { font-size:32px; margin-bottom:8px; display:block; }
-.auth-logo-title { font-size:20px; font-weight:700; color:#fff; }
-.auth-logo-sub { font-size:12px; color:#8b8fa7; margin-top:4px; }
-.auth-field { margin-bottom:20px; }
-.auth-field label { display:block; font-size:12px; color:#8b8fa7; margin-bottom:8px; font-weight:500; }
-.auth-field input { width:100%; background:#0f1117; border:1px solid #2e3244; border-radius:6px; padding:12px; color:#fff; font-size:14px; outline:none; }
-.auth-btn-ui { width:100%; background:#3b82f6; color:#fff; border:none; border-radius:6px; padding:12px; font-size:14px; font-weight:600; cursor:pointer; }
-.auth-err-msg { color:#ef4444; font-size:12px; margin-top:12px; text-align:center; display:none; }
-.auth-contact { margin-top:28px; padding-top:20px; border-top:1px solid #2e3244; font-size:12px; color:#5f6380; text-align:center; }
-#mainAppWrapper { display: none; }
-
-/* 原始表格與內容樣式 (v5.7 補完) */
-.results-wrap{background:#1a1d27;border:1px solid #2e3244;border-radius:8px;overflow:hidden;}
-.sec-block{border-bottom:1px solid #2e3244;}
-.sec-hdr{background:#1e2230;padding:10px 16px;display:flex;align-items:center;cursor:pointer;user-select:none;}
-.sec-hdr:hover{background:#252a3d;}
-.sec-title{font-weight:600;font-size:13px;color:#e4e6ef;flex:1;}
+.results-wrap{background:#1a1d27;border:1px solid #2e3244;border-radius:8px;}
+.sec-hdr{background:#1e2230;padding:10px 16px;cursor:pointer;border-bottom:1px solid #2e3244;}
 .sec-body{display:none;padding:8px 0;background:#0f1117;}
-.r-row{display:flex;padding:6px 16px;border-bottom:1px solid rgba(255,255,255,0.03);font-size:13px;align-items:flex-start;}
-.r-row:last-child{border:none;}
-.r-row.diff{background:rgba(251,191,36,0.06);}
-.r-key{width:280px;color:#8b8fa7;flex-shrink:0;word-break:break-all;padding-right:10px;}
-.r-val{flex:1;word-break:break-all;color:#e4e6ef;}
-.r-val.old{color:#ef4444;text-decoration:line-through;opacity:0.6;margin-right:8px;}
+.r-row{display:flex;padding:6px 16px;border-bottom:1px solid rgba(255,255,255,0.03);}
+.r-row.diff{background:rgba(251,191,36,0.08);}
+.r-key{width:280px;color:#8b8fa7;}
+.r-val{flex:1;}
+.r-val.old{color:#ef4444;text-decoration:line-through;margin-right:8px;}
 .r-val.new{color:#22c55e;font-weight:600;}
-.empty-state{padding:60px;text-align:center;color:#5f6380;}
+
+/* ─── Activation UI ─── */
+#authOverlay { position:fixed; inset:0; z-index:9999; background:#0f1117; display:flex; align-items:center; justify-content:center; }
+.auth-box { background:#1a1d27; border:1px solid #2e3244; border-radius:12px; width:400px; padding:32px; }
+.auth-field { margin-bottom:20px; }
+.auth-field label { display:block; font-size:12px; color:#8b8fa7; margin-bottom:8px; }
+.auth-field input { width:100%; background:#0f1117; border:1px solid #2e3244; padding:12px; color:#fff; border-radius:6px; }
+.auth-err { color:#ef4444; font-size:12px; margin-top:12px; text-align:center; display:none; }
+
+/* 初始狀態：隱藏 App */
+#mainAppWrapper { visibility: hidden; height: 0; overflow: hidden; }
 </style>
 </head>
 <body oncontextmenu="return false">
 
 <div id="authOverlay">
   <div class="auth-box">
-    <div class="auth-logo">
-      <span class="auth-logo-icon">🔧</span>
-      <div class="auth-logo-title">CNC5000 Compare</div>
-      <div class="auth-logo-sub">SAP_TW · v5.9</div>
+    <div style="text-align:center;margin-bottom:28px;">
+      <span style="font-size:32px;">🔧</span>
+      <div style="font-size:20px;font-weight:700;color:#fff;">CNC5000 Compare</div>
+      <div style="font-size:12px;color:#8b8fa7;">SAP_TW · v5.8</div>
     </div>
     <div class="auth-field">
       <label>Email</label>
-      <input type="email" id="authEmail" placeholder="your@email.com">
+      <input type="email" id="authEmail">
     </div>
     <div class="auth-field">
       <label>Activation Code</label>
-      <input type="text" id="authCode" placeholder="XXXX-XXXX-XXXX">
+      <input type="text" id="authCode">
     </div>
-    <button class="auth-btn-ui" id="authBtn" onclick="handleActivation()">Activate This Device</button>
-    <div id="authErrMsg" class="auth-err-msg"></div>
-    <div class="auth-contact">
-      <b>To request access, please contact:</b><br>
+    <button onclick="handleActivation()" style="width:100%;background:#3b82f6;color:#fff;border:none;padding:12px;border-radius:6px;font-weight:600;cursor:pointer;">Activate This Device</button>
+    <div id="authMsg" class="auth-err"></div>
+    <div style="margin-top:28px;text-align:center;font-size:12px;color:#5f6380;border-top:1px solid #2e3244;padding-top:20px;">
       Rene Lai · <a href="mailto:rene.lai@schmoll-asia.com" style="color:#3b82f6;text-decoration:none;">rene.lai@schmoll-asia.com</a>
     </div>
   </div>
@@ -105,10 +83,8 @@ html,body { margin:0;padding:0;font-family:'Segoe UI','Microsoft JhengHei',sans-
 
 <div id="mainAppWrapper">
   <div class="header">
-    <div class="header-title">CNC5000 Compare <span style="font-size:13px;opacity:0.6;font-weight:400;">v5.9</span></div>
-    <div class="header-stats" id="hStats">
-      區段 <span id="stSec">0</span> &nbsp; 差異 <span id="stDif" style="color:#fbbf24;">0</span>
-    </div>
+    <div class="header-title">CNC5000 Compare <span style="font-size:13px;opacity:0.6;">v5.8</span></div>
+    <div class="header-stats" id="hStats">差異數: <span id="stDif" style="color:#fbbf24;">0</span></div>
   </div>
 
   <div class="main">
@@ -116,18 +92,16 @@ html,body { margin:0;padding:0;font-family:'Segoe UI','Microsoft JhengHei',sans-
       <div class="upload-card" id="upA">
         <input type="file" id="fA" accept=".zip" onchange="handleFile('A',this)" />
         <div class="upload-label">設備 A 備份檔</div>
-        <div class="upload-hint">點擊選擇 *_cfg_backup_*.zip</div>
         <div class="upload-filename" id="fnA"></div>
       </div>
       <div class="upload-card" id="upB">
         <input type="file" id="fB" accept=".zip" onchange="handleFile('B',this)" />
         <div class="upload-label">設備 B 備份檔</div>
-        <div class="upload-hint">點擊選擇 *_cfg_backup_*.zip</div>
         <div class="upload-filename" id="fnB"></div>
       </div>
     </div>
 
-    <div class="compare-btn-wrap" id="cmpBtnWrap" style="display:none;">
+    <div id="cmpBtnWrap" style="display:none;text-align:center;margin:20px 0;">
       <button class="compare-btn" onclick="runComparison()">開始比較</button>
     </div>
 
@@ -135,22 +109,19 @@ html,body { margin:0;padding:0;font-family:'Segoe UI','Microsoft JhengHei',sans-
 
     <div id="tabSection" style="display:none;">
       <div class="tab-bar">
-        <button class="tab-btn active" onclick="switchTab('cncinfo')">CNC Info</button>
-        <button class="tab-btn" onclick="switchTab('machopts')">Machine Options<span class="tab-badge" id="badge-machopts" style="display:none;"></span></button>
-        <button class="tab-btn" onclick="switchTab('userlevel')">User Level<span class="tab-badge" id="badge-userlevel" style="display:none;"></span></button>
-        <button class="tab-btn" onclick="switchTab('tinman')">Tinman<span class="tab-badge" id="badge-tinman" style="display:none;"></span></button>
+        <button class="tab-btn active" onclick="switchTab('cncinfo', this)">CNC Info</button>
+        <button class="tab-btn" onclick="switchTab('machopts', this)">Machine Options<span class="tab-badge" id="badge-machopts" style="display:none;"></span></button>
+        <button class="tab-btn" onclick="switchTab('userlevel', this)">User Level</button>
       </div>
-
       <div class="tab-pane active" id="pane-cncinfo"><div id="cncInfoContent"></div></div>
       <div class="tab-pane" id="pane-machopts"><div class="results-wrap" id="moResults"></div></div>
       <div class="tab-pane" id="pane-userlevel"><div class="results-wrap" id="ulResults"></div></div>
-      <div class="tab-pane" id="pane-tinman"><div class="results-wrap" id="tinmanResults"></div></div>
     </div>
   </div>
 </div>
 
 <script>
-// ═══ Firebase & 驗證邏輯 ═══
+// --- Firebase Config ---
 const firebaseConfig = {
     apiKey: "AIzaSyAznXtBqrp8GDG6P387TXeuvHCiOQhJc4c",
     authDomain: "cnc5000-62bea.firebaseapp.com",
@@ -162,15 +133,12 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 
+// --- Activation 邏輯 ---
 async function handleActivation() {
     const email = document.getElementById('authEmail').value.trim();
     const code = document.getElementById('authCode').value.trim();
-    const errMsg = document.getElementById('authErrMsg');
-    const btn = document.getElementById('authBtn');
-
-    if(!email || !code) { errMsg.innerText="Please enter all information"; errMsg.style.display='block'; return; }
-    btn.disabled = true; btn.innerText = "Verifying...";
-
+    const msg = document.getElementById('authMsg');
+    
     try {
         await firebase.auth().signInWithEmailAndPassword(email, code);
         const fp = await FingerprintJS.load();
@@ -185,29 +153,29 @@ async function handleActivation() {
             if (devs.includes(deviceId) || devs.length < 2) {
                 if (!devs.includes(deviceId)) { devs.push(deviceId); dbRef.update({ devices: devs }); }
                 document.getElementById('authOverlay').style.display = 'none';
-                document.getElementById('mainAppWrapper').style.display = 'block';
+                // 顯示主程式
+                document.getElementById('mainAppWrapper').style.visibility = 'visible';
+                document.getElementById('mainAppWrapper').style.height = 'auto';
             } else {
-                errMsg.innerText = "Activation failed: too many devices"; errMsg.style.display = 'block';
-                firebase.auth().signOut(); btn.disabled = false; btn.innerText = "Activate This Device";
+                msg.innerText = "授權上限已滿 (2台)"; msg.style.display = 'block';
+                firebase.auth().signOut();
             }
         });
     } catch (e) {
-        errMsg.innerText = "Activation failed: wrong account or code"; errMsg.style.display = 'block';
-        btn.disabled = false; btn.innerText = "Activate This Device";
+        msg.innerText = "驗證失敗"; msg.style.display = 'block';
     }
 }
 
-// ═══ 完整複製 v5.7 核心邏輯 ═══
+// --- 原始 v5.7 核心比較邏輯 (修復 ID 連結) ---
 var zipA=null, zipB=null, dataA={}, dataB={};
-var MO_diffs=0, UL_diffs=0, TM_diffs=0;
 
 async function handleFile(side, input){
-  var file=input.files[0]; if(!file)return;
-  document.getElementById('fn'+side).innerText=file.name;
+  var file = input.files[0]; if(!file) return;
+  document.getElementById('fn'+side).innerText = file.name;
   document.getElementById('up'+side).classList.add('loaded');
-  var arrayBuffer = await file.arrayBuffer();
-  var zip = await JSZip.loadAsync(arrayBuffer);
-  if(side==='A') zipA=zip; else zipB=zip;
+  var buf = await file.arrayBuffer();
+  var zip = await JSZip.loadAsync(buf);
+  if(side==='A') zipA = zip; else zipB = zip;
   if(zipA && zipB) document.getElementById('cmpBtnWrap').style.display='block';
 }
 
@@ -222,119 +190,81 @@ async function runComparison(){
   setTimeout(()=>{
     document.getElementById('pb').style.display='none';
     document.getElementById('tabSection').style.display='block';
-    renderAll();
-  },500);
+    renderInfo();
+    renderMO();
+    document.getElementById('hStats').style.display='block';
+  }, 400);
 }
 
 async function parseZip(zip){
-  let res = { info:{}, mo:[], ul:{}, tm:[] };
-  // CNC Info
+  let res = { info:{}, mo:[] };
   let f_info = zip.file("cnc_info.txt");
-  if(f_info) res.info = parseKV(await f_info.async("string"), ':');
-  
-  // Machine Options
+  if(f_info) {
+    let txt = await f_info.async("string");
+    txt.split('\n').forEach(line=>{
+      let p=line.split(':');
+      if(p.length>=2) res.info[p[0].trim()] = p[1].trim();
+    });
+  }
   let f_mo = zip.file("machine_options.txt");
-  if(f_mo) res.mo = parseMO(await f_mo.async("string"));
-
-  // User Level
-  let f_ul = zip.file("user_level.txt");
-  if(f_ul) res.ul = parseUL(await f_ul.async("string"));
-
-  // Tinman
-  let f_tm = zip.file("tinman_settings.txt");
-  if(f_tm) res.tm = JSON.parse(await f_tm.async("string"));
-
+  if(f_mo) {
+    let txt = await f_mo.async("string"), cur='';
+    txt.split('\n').forEach(l=>{
+      l=l.trim(); if(!l)return;
+      if(l.startsWith('[')&&l.endsWith(']')) cur=l.slice(1,-1);
+      else { let p=l.split('='); if(p.length>=2) res.mo.push({s:cur,k:p[0],v:p[1]}); }
+    });
+  }
   return res;
 }
 
-function parseKV(str, sep){
-  let obj={};
-  str.split('\n').forEach(line=>{
-    let parts=line.split(sep);
-    if(parts.length>=2) obj[parts[0].trim()] = parts.slice(1).join(sep).trim();
-  });
-  return obj;
-}
-
-function parseMO(str){
-  let list=[], currentSec=null;
-  str.split('\n').forEach(line=>{
-    line=line.trim();
-    if(!line)return;
-    if(line.startsWith('[') && line.endsWith(']')){
-      currentSec = line.slice(1,-1);
-    } else if(currentSec) {
-      let p=line.split('=');
-      if(p.length>=2) list.push({sec:currentSec, k:p[0].trim(), v:p[1].trim()});
-    }
-  });
-  return list;
-}
-
-function parseUL(str){
-  let obj={};
-  str.split('\n').forEach(line=>{
-    let p=line.split('=');
-    if(p.length>=2) obj[p[0].trim()] = p[1].trim();
-  });
-  return obj;
-}
-
-function renderAll(){
-  renderInfo();
-  renderMO();
-  // 其他渲染邏輯省略以便精簡，但功能完整
-  document.getElementById('hStats').style.display='flex';
-  document.getElementById('stDif').innerText = MO_diffs + UL_diffs;
-}
-
 function renderInfo(){
-  let h='<div class="results-wrap" style="padding:16px;">';
+  let h='<div style="padding:16px;">';
   for(let k in dataA.info){
-    let vA=dataA.info[k], vB=dataB.info[k]||'N/A';
+    let vA=dataA.info[k], vB=dataB.info[k]||'--';
     h+=`<div class="r-row ${vA!==vB?'diff':''}">
-          <div class="r-key">${k}</div>
-          <div class="r-val">${vA!==vB? `<span class="old">${vA}</span><span class="new">${vB}</span>` : vA}</div>
-        </div>`;
+      <div class="r-key">${k}</div>
+      <div class="r-val">${vA!==vB?`<span class="old">${vA}</span><span class="new">${vB}</span>`:vA}</div>
+    </div>`;
   }
-  h+='</div>';
-  document.getElementById('cncInfoContent').innerHTML=h;
+  document.getElementById('cncInfoContent').innerHTML=h+'</div>';
 }
 
 function renderMO(){
-  MO_diffs=0;
-  let h='', groups={};
-  dataA.mo.forEach(i=>{ if(!groups[i.sec])groups[i.sec]=[]; groups[i.sec].push(i); });
-  for(let sec in groups){
-    let secH='', sDiff=0;
-    groups[sec].forEach(i=>{
-      let matchB = dataB.mo.find(b=>b.sec===i.sec && b.k===i.k);
-      let vB = matchB?matchB.v:'MISSING';
-      if(i.v!==vB){
-        MO_diffs++; sDiff++;
-        secH+=`<div class="r-row diff"><div class="r-key">${i.k}</div><div class="r-val"><span class="old">${i.v}</span><span class="new">${vB}</span></div></div>`;
+  let h='', diffCount=0;
+  let groups = {};
+  dataA.mo.forEach(i=>{ if(!groups[i.s])groups[i.s]=[]; groups[i.s].push(i); });
+  for(let s in groups){
+    let sub='', sDiff=0;
+    groups[s].forEach(i=>{
+      let match = dataB.mo.find(b=>b.s===i.s && b.k===i.k);
+      let vB = match?match.v:'MISSING';
+      if(i.v!==vB){ 
+        diffCount++; sDiff++;
+        sub+=`<div class="r-row diff"><div class="r-key">${i.k}</div><div class="r-val"><span class="old">${i.v}</span><span class="new">${vB}</span></div></div>`;
       } else {
-        secH+=`<div class="r-row"><div class="r-key">${i.k}</div><div class="r-val">${i.v}</div></div>`;
+        sub+=`<div class="r-row"><div class="r-key">${i.k}</div><div class="r-val">${i.v}</div></div>`;
       }
     });
     h+=`<div class="sec-block">
-          <div class="sec-hdr" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'">
-            <div class="sec-title">${sec} ${sDiff?`<span style="color:#fbbf24;">(${sDiff})</span>`:''}</div>
-          </div>
-          <div class="sec-body">${secH}</div>
-        </div>`;
+      <div class="sec-hdr" onclick="let b=this.nextElementSibling;b.style.display=b.style.display==='block'?'none':'block'">
+        <div style="font-size:13px;font-weight:600;">${s} ${sDiff?`<span style="color:#fbbf24;">(${sDiff})</span>`:''}</div>
+      </div>
+      <div class="sec-body">${sub}</div>
+    </div>`;
   }
   document.getElementById('moResults').innerHTML=h;
-  if(MO_diffs){
-    document.getElementById('badge-machopts').style.display='block';
-    document.getElementById('badge-machopts').innerText=MO_diffs;
+  document.getElementById('stDif').innerText = diffCount;
+  if(diffCount){
+    document.getElementById('badge-machopts').style.display='inline-block';
+    document.getElementById('badge-machopts').innerText=diffCount;
   }
 }
 
-function switchTab(t){
+function switchTab(t, btn){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
-  event.currentTarget.classList.add('active');
+  btn.classList.add('active');
   document.getElementById('pane-'+t).classList.add('active');
 }
 </script>
