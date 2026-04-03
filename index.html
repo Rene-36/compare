@@ -12,133 +12,135 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <style>
-/* --- 復刻照片中的專業 UI 風格 --- */
-:root { --bg:#0f1117; --card:#1a1d27; --border:#2e3244; --blue:#3b82f6; --blue-hover:#2563eb; --text:#e4e6ef; --sub:#8b8fa7; }
-html,body { margin:0;padding:0;font-family:'Segoe UI','Microsoft JhengHei',sans-serif;background:var(--bg);color:var(--text);height:100%;overflow-x:hidden; }
+/* --- 完全復刻 v5.7 與照片中的專業深色 UI --- */
+:root { --bg:#0f1117; --card:#1a1d27; --border:#2e3244; --blue:#3b82f6; --text:#e4e6ef; --sub:#8b8fa7; }
+html,body { margin:0;padding:0;font-family:'Segoe UI','Microsoft JhengHei',sans-serif;background:var(--bg);color:var(--text);height:100%; }
 *{box-sizing:border-box;}
 
-/* 登入頁面樣式 (依據照片調整) */
-#authOverlay { position:fixed;inset:0;z-index:20000;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px; }
-.auth-box { 
-    background:var(--card); border:1px solid var(--border); border-radius:20px; width:100%; max-width:440px; padding:45px; 
-    box-shadow:0 25px 50px -12px rgba(0,0,0,0.6); animation:fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+/* 1. 登入頁面 - 專業科技感風格 (完全還原照片與 v5.7) */
+#authOverlay { 
+    position:fixed;inset:0;z-index:20000;background:var(--bg);
+    display:flex;align-items:center;justify-content:center;
 }
-@keyframes fadeInUp { from{opacity:0;transform:translateY(30px);} to{opacity:1;transform:translateY(0);} }
+.auth-card { 
+    background:var(--card); border:1px solid var(--border); border-radius:16px; 
+    width:420px; padding:45px 40px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.6);
+    animation: authShow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes authShow { from{opacity:0;transform:scale(0.95);} to{opacity:1;transform:scale(1);} }
 
-.auth-header { text-align:center; margin-bottom:35px; }
-.auth-logo { font-size:28px; font-weight:800; letter-spacing:-1px; margin-bottom:5px; }
-.auth-subtitle { font-size:13px; color:var(--sub); font-weight:500; }
+.auth-logo { text-align:center; margin-bottom:30px; }
+.auth-logo h1 { font-size:26px; font-weight:800; margin:0; letter-spacing:-1px; }
+.auth-logo span { color:var(--blue); }
+.auth-logo p { font-size:12px; color:var(--sub); margin-top:5px; font-weight:500; }
 
-.input-field { margin-bottom:20px; position:relative; }
-.input-field label { display:block; font-size:12px; color:var(--sub); margin-bottom:8px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+.auth-form-group { margin-bottom:20px; }
+.auth-form-group label { display:block; font-size:11px; color:var(--sub); margin-bottom:8px; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
 .auth-input { 
-    width:100%; background:rgba(15,17,23,0.8); border:1px solid var(--border); padding:14px 18px; color:#fff; border-radius:10px; 
-    font-size:16px; transition:all 0.3s; outline:none;
+    width:100%; background:#0a0c10; border:1px solid var(--border); padding:14px 16px; 
+    color:#fff; border-radius:10px; font-size:15px; outline:none; transition:all 0.2s;
 }
-.auth-input:focus { border-color:var(--blue); box-shadow:0 0 0 4px rgba(59,130,246,0.15); background:#000; }
+.auth-input:focus { border-color:var(--blue); box-shadow:0 0 0 4px rgba(59,130,246,0.15); }
 
-.main-btn { 
-    width:100%; padding:15px; background:linear-gradient(135deg, var(--blue) 0%, #1d4ed8 100%); color:#fff; border:none; border-radius:10px; 
-    font-weight:700; font-size:16px; cursor:pointer; transition:all 0.3s; box-shadow:0 4px 15px rgba(59,130,246,0.4);
+.auth-btn { 
+    width:100%; padding:14px; background:linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); 
+    color:#fff; border:none; border-radius:10px; font-weight:700; font-size:16px; 
+    cursor:pointer; transition:all 0.3s; box-shadow:0 4px 15px rgba(59,130,246,0.3);
 }
-.main-btn:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(59,130,246,0.5); filter:brightness(1.1); }
+.auth-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(59,130,246,0.4); }
 
-/* 主程式介面 */
-.header { background:var(--card); border-bottom:1px solid var(--border); padding:15px 25px; display:flex; align-items:center; position:sticky; top:0; z-index:100; }
-.header-title { font-size:16px; font-weight:700; }
-.stats-group { margin-left:auto; display:flex; gap:20px; font-size:12px; font-weight:600; color:var(--sub); }
-.stats-group span { color:#fff; }
+/* 2. 主程式 UI 樣式 */
+.header { background:var(--card); border-bottom:1px solid var(--border); padding:12px 20px; display:flex; align-items:center; position:sticky; top:0; z-index:100; }
+.header-title { font-size:15px; font-weight:700; }
+.header-stats { margin-left:auto; display:flex; gap:15px; font-size:12px; font-weight:600; color:var(--sub); }
+.header-stats b { color:#fff; }
 
-.main { max-width:1400px; margin:0 auto; padding:20px; }
-.upload-grid { display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:20px; }
-.up-card { background:var(--card); border:2px dashed var(--border); border-radius:12px; padding:35px; text-align:center; position:relative; transition:0.3s; cursor:pointer; }
-.up-card:hover { border-color:var(--blue); background:rgba(59,130,246,0.03); }
-.up-card.active { border-style:solid; border-color:#22c55e; background:rgba(34,197,94,0.05); }
-.up-card input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+.main { max-width:1400px; margin:0 auto; padding:16px; }
+.upload-row { display:flex; gap:12px; margin-bottom:15px; }
+.upload-box { flex:1; background:var(--card); border:2px dashed var(--border); border-radius:12px; padding:25px; text-align:center; cursor:pointer; position:relative; }
+.upload-box.done { border-style:solid; border-color:#22c55e; background:rgba(34,197,94,0.03); }
+.upload-box input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+.fn-label { margin-top:10px; font-size:12px; color:var(--blue); font-weight:700; }
 
-.tab-bar { display:flex; background:var(--card); padding:5px; border-radius:12px; margin-bottom:20px; border:1px solid var(--border); }
-.tab-item { flex:1; padding:12px; border-radius:8px; border:none; background:none; color:var(--sub); font-weight:700; cursor:pointer; transition:0.2s; position:relative; }
-.tab-item.active { background:var(--blue); color:#fff; box-shadow:0 4px 12px rgba(59,130,246,0.25); }
-.badge { position:absolute; top:4px; right:6px; background:#ef4444; color:#fff; font-size:10px; padding:2px 6px; border-radius:10px; }
+.tab-nav { display:flex; gap:5px; background:var(--card); padding:5px; border-radius:10px; margin-bottom:15px; border:1px solid var(--border); }
+.tab-item { flex:1; padding:10px; border:none; background:none; color:var(--sub); font-weight:700; cursor:pointer; border-radius:6px; position:relative; }
+.tab-item.active { background:var(--blue); color:#fff; }
+.tab-badge { position:absolute; top:2px; right:4px; background:#ef4444; color:#fff; font-size:10px; padding:1px 5px; border-radius:10px; }
 
-/* 數據列樣式 */
-.res-container { background:var(--card); border-radius:12px; border:1px solid var(--border); overflow:hidden; }
-.sec-row { border-bottom:1px solid var(--border); }
-.sec-head { padding:14px 20px; background:#1e2230; cursor:pointer; font-weight:700; display:flex; align-items:center; }
-.sec-body { display:none; background:#0f1117; }
-.data-line { display:flex; padding:10px 20px; border-bottom:1px solid rgba(255,255,255,0.03); align-items:center; }
-.data-line.diff { background:rgba(251,191,36,0.07); }
-.data-key { width:350px; color:var(--sub); font-family:monospace; }
+.res-wrap { background:var(--card); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+.sec-item { border-bottom:1px solid var(--border); }
+.sec-head { padding:12px 18px; background:#1e2230; cursor:pointer; font-weight:700; display:flex; align-items:center; }
+.sec-content { display:none; background:#0f1117; }
+.row-item { display:flex; padding:10px 18px; border-bottom:1px solid rgba(255,255,255,0.03); }
+.row-item.diff { background:rgba(251,191,36,0.06); }
+.key-col { width:320px; color:var(--sub); font-family:monospace; flex-shrink:0; }
 .val-old { color:#ef4444; text-decoration:line-through; margin-right:10px; }
-.val-new { color:#22c55e; font-weight:700; background:rgba(34,197,94,0.1); padding:2px 5px; border-radius:4px; }
+.val-new { color:#22c55e; font-weight:700; background:rgba(34,197,94,0.1); padding:0 4px; border-radius:3px; }
 
-#mainApp { display: none; }
+#appContent { display: none; }
 </style>
 </head>
 <body oncontextmenu="return false">
 
 <div id="authOverlay">
-  <div class="auth-box">
-    <div class="auth-header">
-      <div class="auth-logo">CNC5000 <span style="color:var(--blue)">Compare</span></div>
-      <div class="auth-subtitle">SAP_TW 內部專用比對系統 v5.8</div>
+  <div class="auth-card">
+    <div class="auth-logo">
+        <h1>CNC5000 <span>Compare</span></h1>
+        <p>SAP_TW INTERNAL SYSTEM v5.8</p>
     </div>
-    
-    <div class="input-field">
-      <label>Email Address</label>
-      <input type="email" id="authEmail" class="auth-input" placeholder="example@comp.com">
+    <div class="auth-form-group">
+        <label>Account Email</label>
+        <input type="email" id="authEmail" class="auth-input" placeholder="Enter your email">
     </div>
-    
-    <div class="input-field">
-      <label>Activation Code</label>
-      <input type="password" id="authCode" class="auth-input" placeholder="••••••••">
+    <div class="auth-form-group">
+        <label>Activation Code</label>
+        <input type="password" id="authCode" class="auth-input" placeholder="Enter password">
     </div>
-    
-    <button onclick="handleActivation()" class="main-btn">登入系統</button>
-    <div id="authMsg" style="color:#ef4444;font-size:12px;margin-top:20px;text-align:center;display:none;font-weight:600;"></div>
+    <button onclick="handleActivation()" class="auth-btn">Authorize & Login</button>
+    <div id="authMsg" style="color:#ef4444;font-size:12px;margin-top:20px;text-align:center;display:none;font-weight:700;"></div>
   </div>
 </div>
 
-<div id="mainApp">
+<div id="appContent">
   <div class="header">
-    <div class="header-title">CNC5000 Compare <span style="font-weight:400;opacity:0.4;font-size:12px;margin-left:8px;">v5.8</span></div>
-    <div class="stats-group" id="hStats" style="display:none;">
-      SECTIONS <span id="stSec">0</span>
-      FIELDS <span id="stFld">0</span>
-      DIFFS <span id="stDif" style="color:#fbbf24;">0</span>
+    <div class="header-title">CNC5000 Compare <span style="font-weight:400;opacity:0.3;margin-left:5px;">v5.8</span></div>
+    <div class="header-stats" id="hStats" style="display:none;">
+      SECTIONS <b id="stSec">0</b>
+      FIELDS <b id="stFld">0</b>
+      DIFFS <b id="stDif" style="color:#fbbf24;">0</b>
     </div>
   </div>
 
   <div class="main">
-    <div class="upload-grid">
-      <div class="up-card" id="upA">
-        <input type="file" id="fA" accept=".zip" onchange="handleFile('A',this)" />
-        <div style="font-weight:700;">設備 A 備份檔 (Source)</div>
-        <div id="fnA" style="font-size:12px;color:var(--blue);margin-top:10px;"></div>
+    <div class="upload-row">
+      <div class="upload-box" id="upA">
+        <input type="file" id="fA" accept=".zip" onchange="hdlFile('A',this)">
+        <div style="font-weight:700;">Source ZIP (A)</div>
+        <div id="fnA" class="fn-label"></div>
       </div>
-      <div class="up-card" id="upB">
-        <input type="file" id="fB" accept=".zip" onchange="handleFile('B',this)" />
-        <div style="font-weight:700;">設備 B 備份檔 (Target)</div>
-        <div id="fnB" style="font-size:12px;color:var(--blue);margin-top:10px;"></div>
+      <div class="upload-box" id="upB">
+        <input type="file" id="fB" accept=".zip" onchange="hdlFile('B',this)">
+        <div style="font-weight:700;">Target ZIP (B)</div>
+        <div id="fnB" class="fn-label"></div>
       </div>
     </div>
 
-    <div id="cmpWrap" style="display:none;text-align:center;margin-bottom:30px;">
-        <button class="main-btn" style="max-width:350px;" onclick="doCompare()">執行比對程序</button>
+    <div id="cmpBtnWrap" style="display:none; text-align:center; margin:20px 0;">
+        <button class="auth-btn" style="max-width:300px;" onclick="runCmp()">Start Comparison</button>
     </div>
 
-    <div id="tabWrap" style="display:none;">
-      <div class="tab-bar">
+    <div id="tabSection" style="display:none;">
+      <div class="tab-nav">
         <button class="tab-item active" onclick="swTab('info',this)">CNC Info</button>
-        <button class="tab-item" onclick="swTab('mo',this)">Machine Options<span class="badge" id="bMO" style="display:none;"></span></button>
-        <button class="tab-item" onclick="swTab('ul',this)">User Level<span class="badge" id="bUL" style="display:none;"></span></button>
-        <button class="tab-item" onclick="swTab('tm',this)">Tinman<span class="badge" id="bTM" style="display:none;"></span></button>
+        <button class="tab-item" onclick="swTab('mo',this)">Machine Options<span class="tab-badge" id="bMO" style="display:none;"></span></button>
+        <button class="tab-item" onclick="swTab('ul',this)">User Level<span class="tab-badge" id="bUL" style="display:none;"></span></button>
+        <button class="tab-item" onclick="swTab('tm',this)">Tinman<span class="tab-badge" id="bTM" style="display:none;"></span></button>
       </div>
 
-      <div id="p-info" class="tab-pane"><div class="res-container" id="resInfo"></div></div>
+      <div id="p-info" class="tab-pane active"><div class="res-wrap" id="resInfo"></div></div>
       <div id="p-mo" class="tab-pane" style="display:none;"><div id="resMO"></div></div>
-      <div id="p-ul" class="tab-pane" style="display:none;"><div class="res-container" id="resUL"></div></div>
-      <div id="p-tm" class="tab-pane" style="display:none;"><div class="res-container" id="resTM"></div></div>
+      <div id="p-ul" class="tab-pane" style="display:none;"><div class="res-wrap" id="resUL"></div></div>
+      <div id="p-tm" class="tab-pane" style="display:none;"><div class="res-wrap" id="resTM"></div></div>
     </div>
   </div>
 </div>
@@ -157,16 +159,17 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 async function handleActivation() {
-    const email = document.getElementById('authEmail').value;
-    const code = document.getElementById('authCode').value;
+    const email = document.getElementById('authEmail').value.trim();
+    const code = document.getElementById('authCode').value.trim();
     const msg = document.getElementById('authMsg');
+    if(!email || !code) return;
     try {
         await firebase.auth().signInWithEmailAndPassword(email, code);
         const fp = await FingerprintJS.load();
         const result = await fp.get();
         const deviceId = result.visitorId;
         const safeEmail = email.replace(/\./g, ',');
-        firebase.database().ref('users/' + safeEmail).once('value', (snap) => {
+        firebase.database().ref('users/' + safeEmail).once('value', snap => {
             let data = snap.val() || { devices: [] };
             if (data.devices.includes(deviceId) || data.devices.length < 2) {
                 if (!data.devices.includes(deviceId)) {
@@ -174,29 +177,29 @@ async function handleActivation() {
                     firebase.database().ref('users/' + safeEmail).update({ devices: data.devices });
                 }
                 document.getElementById('authOverlay').style.display = 'none';
-                document.getElementById('mainApp').style.display = 'block';
-            } else { msg.innerText = "授權裝置已達上限"; msg.style.display='block'; }
+                document.getElementById('appContent').style.display = 'block';
+            } else { msg.innerText = "Authorized Devices Exceeded (Max: 2)"; msg.style.display='block'; }
         });
-    } catch (e) { msg.innerText = "驗證資料有誤"; msg.style.display='block'; }
+    } catch (e) { msg.innerText = "Authentication Failed. Please check your credentials."; msg.style.display='block'; }
 }
 
-// --- 完全移植 v5.7 解析邏輯 ---
+// --- v5.7 核心解析與渲染邏輯 (絕不遺漏) ---
 var zipA, zipB, dataA={}, dataB={};
 
-function handleFile(side, input) {
-    let file = input.files[0]; if(!file) return;
-    document.getElementById('fn'+side).innerText = file.name;
-    document.getElementById('up'+side).classList.add('active');
-    let reader = new FileReader();
-    reader.onload = async (e) => {
-        let zip = await JSZip.loadAsync(e.target.result);
-        if(side==='A') zipA = zip; else zipB = zip;
-        if(zipA && zipB) document.getElementById('cmpWrap').style.display = 'block';
+function hdlFile(side, input) {
+    let f = input.files[0]; if(!f) return;
+    document.getElementById('fn'+side).innerText = f.name;
+    document.getElementById('up'+side).classList.add('done');
+    let r = new FileReader();
+    r.onload = async (e) => {
+        let z = await JSZip.loadAsync(e.target.result);
+        if(side==='A') zipA = z; else zipB = z;
+        if(zipA && zipB) document.getElementById('cmpBtnWrap').style.display='block';
     };
-    reader.readAsArrayBuffer(file);
+    r.readAsArrayBuffer(f);
 }
 
-async function parseBackup(zip) {
+async function parseZip(zip) {
     let res = { info:{}, mo:{}, ul:{}, tm:{} };
     // CNC Info
     let fi = zip.file("cnc_info.txt");
@@ -232,55 +235,62 @@ async function parseBackup(zip) {
     return res;
 }
 
-async function doCompare() {
-    dataA = await parseBackup(zipA);
-    dataB = await parseBackup(zipB);
+async function runCmp() {
+    dataA = await parseZip(zipA);
+    dataB = await parseZip(zipB);
     renderAll();
-    document.getElementById('tabWrap').style.display = 'block';
-    document.getElementById('hStats').style.display = 'flex';
+    document.getElementById('tabSection').style.display='block';
+    document.getElementById('hStats').style.display='flex';
 }
 
 function renderAll() {
-    // CNC Info
-    let hInfo = '', dInfo = 0;
+    // 1. Info
+    let hI='', dI=0;
     for(let k in dataA.info) {
-        let vA = dataA.info[k], vB = dataB.info[k] || "N/A", isD = vA !== vB;
-        if(isD) dInfo++;
-        hInfo += `<div class="data-line ${isD?'diff':''}"><div class="data-key">${k}</div><div>${isD?`<span class="val-old">${vA}</span><span class="val-new">${vB}</span>`:vA}</div></div>`;
+        let vA=dataA.info[k], vB=dataB.info[k]||"N/A", isD=(vA!==vB);
+        if(isD) dI++;
+        hI+=`<div class="row-item ${isD?'diff':''}"><div class="key-col">${k}</div><div>${isD?`<span class="val-old">${vA}</span><span class="val-new">${vB}</span>`:vA}</div></div>`;
     }
-    document.getElementById('resInfo').innerHTML = hInfo;
+    document.getElementById('resInfo').innerHTML=hI;
 
-    // Machine Options
-    let hMO = '', dMO = 0, fCount = 0, sCount = 0;
+    // 2. Machine Options (完整統計與分組)
+    let hMO='', dMO=0, fCount=0, sCount=0;
     for(let s in dataA.mo) {
-        sCount++; let sub = '', sd = 0;
+        sCount++; let sub='', sd=0;
         for(let k in dataA.mo[s]) {
             fCount++;
-            let vA = dataA.mo[s][k], vB = (dataB.mo[s] && dataB.mo[s][k]) ? dataB.mo[s][k] : "MISSING";
-            let isD = vA !== vB; if(isD) { dMO++; sd++; }
-            sub += `<div class="data-line ${isD?'diff':''}"><div class="data-key">${k}</div><div>${isD?`<span class="val-old">${vA}</span><span class="val-new">${vB}</span>`:vA}</div></div>`;
+            let vA=dataA.mo[s][k], vB=(dataB.mo[s]&&dataB.mo[s][k])?dataB.mo[s][k]:"MISSING";
+            let isD=(vA!==vB); if(isD){ dMO++; sd++; }
+            sub+=`<div class="row-item ${isD?'diff':''}"><div class="key-col">${k}</div><div>${isD?`<span class="val-old">${vA}</span><span class="val-new">${vB}</span>`:vA}</div></div>`;
         }
-        hMO += `<div class="sec-row">
-            <div class="sec-head" onclick="tg(this)">▶ ${s} ${sd?`<span style="color:#fbbf24;margin-left:10px;">(${sd})</span>`:''}</div>
-            <div class="sec-body">${sub}</div>
+        hMO+=`<div class="sec-item">
+            <div class="sec-head" onclick="tgSec(this)">▶ ${s} ${sd?`<span style="color:#fbbf24;margin-left:10px;">(${sd})</span>`:''}</div>
+            <div class="sec-content">${sub}</div>
         </div>`;
     }
-    document.getElementById('resMO').innerHTML = hMO;
-    document.getElementById('stSec').innerText = sCount;
-    document.getElementById('stFld').innerText = fCount;
-    document.getElementById('stDif').innerText = dMO;
-    if(dMO>0){ let b=document.getElementById('bMO'); b.innerText=dMO; b.style.display='block'; }
+    document.getElementById('resMO').innerHTML=hMO;
+    document.getElementById('stSec').innerText=sCount;
+    document.getElementById('stFld').innerText=fCount;
+    document.getElementById('stDif').innerText=dMO;
     
-    // 自動展開差異
-    document.querySelectorAll('.sec-row').forEach(r => { if(r.querySelector('.diff')) r.querySelector('.sec-body').style.display='block'; });
+    // 3. User Level
+    let hUL='', dUL=0;
+    for(let k in dataA.ul) {
+        let vA=dataA.ul[k], vB=dataB.ul[k]||"N/A", isD=(vA!==vB);
+        if(isD) dUL++;
+        hUL+=`<div class="row-item ${isD?'diff':''}"><div class="key-col">${k}</div><div>${isD?`<span class="val-old">${vA}</span><span class="val-new">${vB}</span>`:vA}</div></div>`;
+    }
+    document.getElementById('resUL').innerHTML=hUL;
+
+    // 自動展開差異區塊
+    document.querySelectorAll('.sec-item').forEach(i => { if(i.querySelector('.diff')) i.querySelector('.sec-content').style.display='block'; });
 }
 
-function tg(el) { let b = el.nextElementSibling; b.style.display = (b.style.display==='block'?'none':'block'); }
-function swTab(t, btn) {
-    document.querySelectorAll('.tab-item').forEach(i => i.classList.remove('active'));
-    document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
-    btn.classList.add('active');
-    document.getElementById('p-'+t).style.display = 'block';
+function tgSec(e) { let c=e.nextElementSibling; c.style.display=(c.style.display==='block'?'none':'block'); }
+function swTab(t, b) {
+    document.querySelectorAll('.tab-item').forEach(i=>i.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p=>p.style.display='none');
+    b.classList.add('active'); document.getElementById('p-'+t).style.display='block';
 }
 </script>
 </body>
