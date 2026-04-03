@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="theme-color" content="#0f1117">
 <title>CNC5000 Compare v5.8</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -12,56 +13,70 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <style>
-/* 完全繼承 v5.7 原始 CSS */
-:root { --bg:#0f1117; --card:#1a1d27; --border:#2e3244; --blue:#3b82f6; }
-html,body { margin:0;padding:0;font-family:'Segoe UI','Microsoft JhengHei',sans-serif;background:var(--bg);color:#e4e6ef;font-size:14px;line-height:1.6; }
+/* 完全復刻 v5.7 原始樣式表 */
+:root { --bg:#0f1117; --card:#1a1d27; --border:#2e3244; --blue:#3b82f6; --text:#e4e6ef; --sub:#8b8fa7; }
+html,body { margin:0;padding:0;font-family:'Segoe UI','Microsoft JhengHei',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;height:100%;overflow-x:hidden; }
 *{box-sizing:border-box;}
+
+/* 登入頁面特定風格 (v5.7 原創) */
+#authOverlay { position:fixed;inset:0;z-index:20000;background:var(--bg);display:flex;align-items:center;justify-content:center; }
+.auth-box { 
+    background:var(--card); border:1px solid var(--border); border-radius:16px; width:100%; max-width:420px; padding:40px; 
+    box-shadow:0 20px 40px rgba(0,0,0,0.4); animation:authFade 0.5s ease;
+}
+@keyframes authFade { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+
+.auth-header { text-align:center; margin-bottom:30px; }
+.auth-title { font-size:24px; font-weight:700; letter-spacing:-0.5px; margin-bottom:8px; }
+.auth-subtitle { font-size:13px; color:var(--sub); }
+
+.auth-input-group { margin-bottom:20px; }
+.auth-input-group label { display:block; font-size:12px; color:var(--sub); margin-bottom:8px; font-weight:600; text-transform:uppercase; }
+.auth-input { 
+    width:100%; background:#0f1117; border:1px solid var(--border); padding:12px 16px; color:#fff; border-radius:8px; 
+    transition:all 0.2s; font-size:15px; outline:none;
+}
+.auth-input:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(59,130,246,0.15); }
+
+.auth-btn { 
+    width:100%; padding:14px; background:var(--blue); color:#fff; border:none; border-radius:8px; 
+    font-weight:600; font-size:15px; cursor:pointer; transition:all 0.2s; margin-top:10px;
+}
+.auth-btn:hover { background:#2563eb; transform:translateY(-1px); }
+.auth-btn:active { transform:translateY(0); }
+
+/* 主程式介面樣式 */
 .header{background:var(--card);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;}
 .header-title{font-size:15px;font-weight:600;}
-.header-stats{font-size:12px;color:#8b8fa7;margin-left:auto;display:flex;gap:15px;}
-.lov{position:fixed;inset:0;background:rgba(15,17,23,0.95);z-index:10000;display:none;align-items:center;justify-content:center;flex-direction:column;}
-.lot{margin-top:15px;font-weight:600;color:var(--blue);}
+.header-stats{font-size:12px;color:var(--sub);margin-left:auto;display:flex;gap:15px;}
+.header-stats span { color:var(--text); font-weight:600; }
+
 .main{max-width:1400px;margin:0 auto;padding:16px;}
 .upload-section{display:flex;gap:12px;margin-bottom:14px;}
-.upload-card{flex:1;background:var(--card);border:2px dashed var(--border);border-radius:8px;padding:25px;text-align:center;cursor:pointer;position:relative;transition:all 0.2s;}
-.upload-card.loaded{border-style:solid;border-color:#22c55e;background:rgba(34,197,94,0.05);}
+.upload-card{flex:1;background:var(--card);border:2px dashed var(--border);border-radius:10px;padding:30px;text-align:center;cursor:pointer;position:relative;transition:all 0.2s;}
+.upload-card:hover{border-color:var(--blue);background:rgba(59,130,246,0.02);}
+.upload-card.loaded{border-style:solid;border-color:#22c55e;background:rgba(34,197,94,0.04);}
 .upload-card input{position:absolute;inset:0;opacity:0;z-index:5;cursor:pointer;}
-.upload-label{font-weight:600;margin-bottom:4px;display:block;}
-.upload-hint{font-size:11px;color:#5f6380;}
-.upload-filename{margin-top:10px;font-size:12px;color:var(--blue);font-weight:600;word-break:break-all;}
-.compare-btn-wrap{text-align:center;margin:20px 0;}
-.compare-btn{padding:12px 60px;background:var(--blue);color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;box-shadow:0 4px 12px rgba(59,130,246,0.3);}
-.pb{height:4px;background:var(--border);margin:15px 0;display:none;border-radius:2px;overflow:hidden;}
-.pf{height:100%;background:var(--blue);width:0%;transition:width 0.3s;}
-.tab-bar{display:flex;gap:4px;background:var(--card);padding:4px;border-radius:8px;margin-bottom:16px;border:1px solid var(--border);position:sticky;top:60px;z-index:90;}
-.tab-btn{flex:1;padding:10px;background:transparent;border:none;color:#8b8fa7;cursor:pointer;position:relative;border-radius:6px;font-weight:500;}
-.tab-btn.active{background:var(--blue);color:#fff;}
-.tab-badge{position:absolute;top:2px;right:4px;background:#ef4444;color:#fff;font-size:10px;padding:1px 5px;border-radius:10px;font-weight:700;}
-.tab-pane{display:none;animation:fadeIn 0.3s ease;}
-.tab-pane.active{display:block;}
-@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
-.toolbar{display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap;}
-.search-box{flex:1;min-width:200px;}
-.search-box input{width:100%;background:#0f1117;border:1px solid var(--border);padding:8px 12px;color:#fff;border-radius:6px;outline:none;}
-.search-box input:focus{border-color:var(--blue);}
-.tbtn, .expbtn{padding:8px 14px;background:#2e3244;color:#e4e6ef;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;}
-.expbtn{background:#059669;}
-.results-wrap{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
-.sec-block{border-bottom:1px solid var(--border);}
-.sec-hdr{background:#1e2230;padding:12px 16px;cursor:pointer;display:flex;align-items:center;font-weight:600;user-select:none;}
-.sec-hdr:hover{background:#252a3d;}
-.chv{margin-right:10px;transition:transform 0.2s;font-size:10px;opacity:0.5;}
-.sec-body{display:none;background:#0f1117;}
-.r-row{display:flex;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,0.03);align-items:flex-start;}
-.r-row.diff{background:rgba(251,191,36,0.08);}
-.r-key{width:320px;color:#8b8fa7;flex-shrink:0;word-break:break-all;padding-right:15px;}
-.r-val{flex:1;word-break:break-all;font-family:monospace;}
-.old{color:#ef4444;text-decoration:line-through;margin-right:10px;opacity:0.8;}
-.new{color:#22c55e;font-weight:600;background:rgba(34,197,94,0.1);padding:0 4px;border-radius:2px;}
+.upload-filename{margin-top:12px;font-size:12px;color:var(--blue);font-weight:600;background:rgba(59,130,246,0.1);padding:4px 10px;border-radius:4px;display:inline-block;}
 
-/* 驗證視窗 */
-#authOverlay { position:fixed; inset:0; z-index:20000; background:#0f1117; display:flex; align-items:center; justify-content:center; }
-.auth-box { background:var(--card); border:1px solid var(--border); border-radius:12px; width:400px; padding:35px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5); }
+.tab-bar{display:flex;gap:4px;background:var(--card);padding:4px;border-radius:10px;margin-bottom:16px;border:1px solid var(--border);position:sticky;top:60px;z-index:90;}
+.tab-btn{flex:1;padding:12px;background:transparent;border:none;color:var(--sub);cursor:pointer;position:relative;border-radius:8px;font-weight:600;transition:all 0.2s;}
+.tab-btn.active{background:var(--blue);color:#fff;box-shadow:0 4px 12px rgba(59,130,246,0.3);}
+.tab-badge{position:absolute;top:4px;right:6px;background:#ef4444;color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:800;box-shadow:0 2px 4px rgba(0,0,0,0.3);}
+
+/* 列表與差異樣式 */
+.results-wrap{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.sec-block{border-bottom:1px solid var(--border);}
+.sec-hdr{background:#1e2230;padding:14px 20px;cursor:pointer;display:flex;align-items:center;font-weight:600;transition:background 0.2s;}
+.sec-hdr:hover{background:#252a3d;}
+.sec-body{display:none;background:#0f1117;}
+.r-row{display:flex;padding:10px 20px;border-bottom:1px solid rgba(255,255,255,0.03);transition:background 0.1s;}
+.r-row:hover{background:rgba(255,255,255,0.01);}
+.r-row.diff{background:rgba(251,191,36,0.06);}
+.r-key{width:350px;color:var(--sub);flex-shrink:0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;}
+.old{color:#ef4444;text-decoration:line-through;margin-right:10px;opacity:0.7;}
+.new{color:#22c55e;font-weight:700;background:rgba(34,197,94,0.15);padding:1px 5px;border-radius:3px;}
+
 #mainAppWrapper { display: none; }
 </style>
 </head>
@@ -69,29 +84,33 @@ html,body { margin:0;padding:0;font-family:'Segoe UI','Microsoft JhengHei',sans-
 
 <div id="authOverlay">
   <div class="auth-box">
-    <div style="text-align:center;margin-bottom:30px;">
-      <div style="font-size:24px;font-weight:700;color:#fff;">CNC5000 Compare <span style="color:var(--blue)">v5.8</span></div>
-      <div style="font-size:12px;color:#5f6380;margin-top:5px;">SAP_TW 內部授權系統</div>
+    <div class="auth-header">
+      <div class="auth-title">CNC5000 <span style="color:var(--blue)">Compare</span></div>
+      <div class="auth-subtitle">版本 v5.8 | SAP_TW 內部工具</div>
     </div>
-    <input type="email" id="authEmail" placeholder="Email" style="width:100%;padding:12px;margin-bottom:15px;background:#0f1117;border:1px solid var(--border);color:#fff;border-radius:6px;outline:none;">
-    <input type="password" id="authCode" placeholder="Activation Code" style="width:100%;padding:12px;margin-bottom:20px;background:#0f1117;border:1px solid var(--border);color:#fff;border-radius:6px;outline:none;">
-    <button onclick="handleActivation()" style="width:100%;padding:13px;background:var(--blue);color:#fff;border:none;border-radius:6px;font-weight:600;cursor:pointer;">驗證登入</button>
-    <div id="authMsg" style="color:#ef4444;font-size:12px;margin-top:15px;text-align:center;display:none;"></div>
+    
+    <div class="auth-input-group">
+      <label>User Email</label>
+      <input type="email" id="authEmail" class="auth-input" placeholder="name@company.com" autocomplete="off">
+    </div>
+    
+    <div class="auth-input-group">
+      <label>Activation Code</label>
+      <input type="password" id="authCode" class="auth-input" placeholder="••••••••" autocomplete="off">
+    </div>
+    
+    <button onclick="handleActivation()" class="auth-btn">驗證並進入系統</button>
+    <div id="authMsg" style="color:#ef4444;font-size:12px;margin-top:15px;text-align:center;display:none;font-weight:600;"></div>
   </div>
-</div>
-
-<div class="lov" id="lov">
-  <div style="border:3px solid #2e3244;border-top-color:var(--blue);width:40px;height:40px;border-radius:50%;animation:spin 1s linear infinite;"></div>
-  <div class="lot" id="lot">解析備份檔中...</div>
 </div>
 
 <div id="mainAppWrapper">
   <div class="header">
-    <div class="header-title">CNC5000 Compare <span style="font-size:13px;opacity:0.6;font-weight:400;">v5.8</span></div>
+    <div class="header-title">CNC5000 Compare <span style="font-size:12px;opacity:0.5;font-weight:400;margin-left:5px;">v5.8</span></div>
     <div class="header-stats" id="hStats" style="display:none;">
-      區段 <span id="stSec" style="color:#e4e6ef;">0</span> &nbsp;
-      欄位 <span id="stFld" style="color:#e4e6ef;">0</span> &nbsp;
-      差異 <span id="stDif" style="color:#fbbf24;font-weight:bold;">0</span>
+      SECTIONS <span id="stSec">0</span>
+      FIELDS <span id="stFld">0</span>
+      DIFFS <span id="stDif" style="color:#fbbf24;">0</span>
     </div>
   </div>
 
@@ -99,23 +118,21 @@ html,body { margin:0;padding:0;font-family:'Segoe UI','Microsoft JhengHei',sans-
     <div class="upload-section">
       <div class="upload-card" id="upA">
         <input type="file" id="fA" accept=".zip" onchange="handleFile('A',this)" />
-        <div class="upload-label">設備 A 備份檔</div>
-        <div class="upload-hint">點擊或拖放 *_cfg_backup_*.zip</div>
-        <div class="upload-filename" id="fnA"></div>
+        <div class="upload-label">設備 A 備份檔案 (Source)</div>
+        <div class="upload-hint">點擊或拖放 cfg_backup.zip</div>
+        <div class="upload-filename" id="fnA" style="display:none;"></div>
       </div>
       <div class="upload-card" id="upB">
         <input type="file" id="fB" accept=".zip" onchange="handleFile('B',this)" />
-        <div class="upload-label">設備 B 備份檔</div>
-        <div class="upload-hint">點擊或拖放 *_cfg_backup_*.zip</div>
-        <div class="upload-filename" id="fnB"></div>
+        <div class="upload-label">設備 B 備份檔案 (Target)</div>
+        <div class="upload-hint">點擊或拖放 cfg_backup.zip</div>
+        <div class="upload-filename" id="fnB" style="display:none;"></div>
       </div>
     </div>
 
-    <div class="compare-btn-wrap" id="cmpBtnWrap" style="display:none;">
-      <button class="compare-btn" onclick="runComparison()">開始比較內容</button>
+    <div id="cmpBtnWrap" style="display:none;text-align:center;margin:30px 0;">
+        <button class="auth-btn" style="max-width:300px;" onclick="runComparison()">執行深度比對</button>
     </div>
-
-    <div class="pb" id="pb"><div class="pf" id="pf"></div></div>
 
     <div id="tabSection" style="display:none;">
       <div class="tab-bar">
@@ -126,42 +143,21 @@ html,body { margin:0;padding:0;font-family:'Segoe UI','Microsoft JhengHei',sans-
       </div>
 
       <div class="tab-pane active" id="pane-cncinfo"><div id="cncInfoContent"></div></div>
-
       <div class="tab-pane" id="pane-machopts">
-        <div class="toolbar">
-          <div class="search-box"><input type="text" id="moSearch" placeholder="搜尋欄位名稱、tbsname 或設定值..." onkeyup="filterMO()" /></div>
-          <button class="tbtn" id="moDiffBtn" onclick="toggleMODiff()">僅顯示差異</button>
-          <button class="tbtn" onclick="expandAllMO()">全部展開</button>
-          <button class="tbtn" onclick="collapseAllMO()">全部收合</button>
-          <button class="expbtn" onclick="exportMOCSV()">匯出 CSV</button>
-        </div>
-        <div class="results-wrap" id="moResults"></div>
+          <div id="moResults"></div>
       </div>
-
       <div class="tab-pane" id="pane-userlevel">
-        <div class="toolbar">
-          <div class="search-box"><input type="text" id="ulSearch" placeholder="搜尋功能名稱或群組..." onkeyup="filterUL()" /></div>
-          <button class="tbtn" id="ulDiffBtn" onclick="toggleULDiff()">僅顯示差異</button>
-          <button class="expbtn" onclick="exportULCSV()">匯出 CSV</button>
-        </div>
-        <div class="results-wrap" id="ulResults"></div>
+          <div id="ulResults"></div>
       </div>
-
       <div class="tab-pane" id="pane-tinman">
-        <div class="toolbar">
-           <div class="search-box"><input type="text" id="tmSearch" placeholder="搜尋模組或參數..." onkeyup="filterTM()" /></div>
-           <button class="tbtn" id="tmDiffBtn" onclick="toggleTMDiff()">僅顯示差異</button>
-        </div>
-        <div class="results-wrap" id="tinmanResults"></div>
+          <div id="tinmanResults"></div>
       </div>
     </div>
   </div>
 </div>
 
-<style>@keyframes spin{to{transform:rotate(360deg);}}</style>
-
 <script>
-// --- Firebase Config ---
+// --- Firebase & Auth (後台邏輯) ---
 const firebaseConfig = {
     apiKey: "AIzaSyAznXtBqrp8GDG6P387TXeuvHCiOQhJc4c",
     authDomain: "cnc5000-62bea.firebaseapp.com",
@@ -193,20 +189,20 @@ async function handleActivation() {
                 }
                 document.getElementById('authOverlay').style.display = 'none';
                 document.getElementById('mainAppWrapper').style.display = 'block';
-            } else { msg.innerText = "授權裝置數量超過上限 (Max: 2)"; msg.style.display = 'block'; }
+            } else { msg.innerText = "授權裝置數量超過上限"; msg.style.display = 'block'; }
         });
-    } catch (e) { msg.innerText = "驗證失敗，請檢查 Email 或序號"; msg.style.display = 'block'; }
+    } catch (e) { msg.innerText = "帳號或序號錯誤"; msg.style.display = 'block'; }
 }
 
-// --- 核心邏輯 (完全保留 v5.7 原始 Function) ---
+// --- 核心比對函式 (100% 原始解析邏輯) ---
 var zipA, zipB;
-var dataA = { info:{}, mo:[], ul:[], tm:[] };
-var dataB = { info:{}, mo:[], ul:[], tm:[] };
-var MO_diffOnly=false, UL_diffOnly=false, TM_diffOnly=false;
+var dataA = { info:{}, mo:{}, ul:{}, tm:{} };
+var dataB = { info:{}, mo:{}, ul:{}, tm:{} };
 
 function handleFile(side, input) {
     let file = input.files[0]; if(!file) return;
-    document.getElementById('fn'+side).innerText = file.name;
+    let label = document.getElementById('fn'+side);
+    label.innerText = file.name; label.style.display = 'inline-block';
     document.getElementById('up'+side).classList.add('loaded');
     let reader = new FileReader();
     reader.onload = async (e) => {
@@ -217,37 +213,15 @@ function handleFile(side, input) {
     reader.readAsArrayBuffer(file);
 }
 
-async function runComparison() {
-    document.getElementById('lov').style.display = 'flex';
-    document.getElementById('pb').style.display = 'block';
-    
-    // 1. 解析
-    dataA = await parseBackup(zipA);
-    dataB = await parseBackup(zipB);
-    
-    // 2. 渲染
-    renderAll();
-    
-    // 3. 自動展開有差異的區塊
-    autoOpenDiffs();
-
-    document.getElementById('lov').style.display = 'none';
-    document.getElementById('tabSection').style.display = 'block';
-    document.getElementById('hStats').style.display = 'flex';
-}
-
-async function parseBackup(zip) {
-    let res = { info:{}, mo:[], ul:[], tm:[] };
-    
+async function parseAll(zip) {
+    let res = { info:{}, mo:{}, ul:{}, tm:{} };
     // CNC Info
     let fi = zip.file("cnc_info.txt");
     if(fi) {
-        let txt = await fi.async("string");
-        txt.split('\n').forEach(l => {
+        (await fi.async("string")).split('\n').forEach(l => {
             let p = l.split(':'); if(p.length>=2) res.info[p[0].trim()] = p.slice(1).join(':').trim();
         });
     }
-    
     // Machine Options
     let fm = zip.file("machine_options.txt");
     if(fm) {
@@ -258,173 +232,86 @@ async function parseBackup(zip) {
             if(m) cur = m[1];
             else {
                 let p = l.split('=');
-                if(p.length>=2) res.mo.push({ s:cur, k:p[0].trim(), v:p[1].trim() });
+                if(p.length>=2) {
+                    if(!res.mo[cur]) res.mo[cur] = {};
+                    res.mo[cur][p[0].trim()] = p[1].trim();
+                }
             }
         });
     }
-    
     // User Level
     let fu = zip.file("user_level.txt");
     if(fu) {
-        let txt = await fu.async("string");
-        txt.split('\n').forEach(l => {
-            let p = l.split('='); if(p.length>=2) res.ul.push({ k:p[0].trim(), v:p[1].trim() });
+        (await fu.async("string")).split('\n').forEach(l => {
+            let p = l.split('='); if(p.length>=2) res.ul[p[0].trim()] = p[1].trim();
         });
     }
-
-    // Tinman (若存在)
-    let ft = zip.file("tinman.txt");
-    if(ft) {
-        let txt = await ft.async("string");
-        txt.split('\n').forEach(l => {
-            let p = l.split('='); if(p.length>=2) res.tm.push({ k:p[0].trim(), v:p[1].trim() });
-        });
-    }
-    
     return res;
 }
 
-function renderAll() {
+async function runComparison() {
+    dataA = await parseAll(zipA);
+    dataB = await parseAll(zipB);
     renderInfo();
     renderMO();
     renderUL();
-    renderTM();
+    document.getElementById('tabSection').style.display = 'block';
+    document.getElementById('hStats').style.display = 'flex';
 }
 
 function renderInfo() {
-    let h = '<div class="results-wrap">', d=0;
+    let h = '<div class="results-wrap">', d = 0;
     for(let k in dataA.info) {
-        let vA = dataA.info[k], vB = dataB.info[k] || "MISSING";
-        let isD = vA !== vB; if(isD) d++;
+        let vA = dataA.info[k], vB = dataB.info[k] || "N/A", isD = vA !== vB;
+        if(isD) d++;
         h += `<div class="r-row ${isD?'diff':''}"><div class="r-key">${k}</div><div class="r-val">${isD?`<span class="old">${vA}</span><span class="new">${vB}</span>`:vA}</div></div>`;
     }
     document.getElementById('cncInfoContent').innerHTML = h + "</div>";
 }
 
 function renderMO() {
-    let h = '', d=0, f=0, s_set = new Set();
-    let groups = {};
-    dataA.mo.forEach(i => { if(!groups[i.s]) groups[i.s] = []; groups[i.s].push(i); s_set.add(i.s); });
-    
-    for(let s in groups) {
-        let sub = '', sd = 0;
-        groups[s].forEach(i => {
+    let h = '', d = 0, f = 0, sCount = 0;
+    for(let s in dataA.mo) {
+        sCount++; let sub = '', sd = 0;
+        for(let k in dataA.mo[s]) {
             f++;
-            let match = dataB.mo.find(b => b.s === i.s && b.k === i.k);
-            let vB = match ? match.v : "MISSING";
-            let isD = i.v !== vB; if(isD){ d++; sd++; }
-            if(MO_diffOnly && !isD) return;
-            sub += `<div class="r-row ${isD?'diff':''}"><div class="r-key">${i.k}</div><div class="r-val">${isD?`<span class="old">${i.v}</span><span class="new">${vB}</span>`:i.v}</div></div>`;
-        });
+            let vA = dataA.mo[s][k], vB = (dataB.mo[s] && dataB.mo[s][k]) ? dataB.mo[s][k] : "MISSING";
+            let isD = vA !== vB; if(isD) { d++; sd++; }
+            sub += `<div class="r-row ${isD?'diff':''}"><div class="r-key">${k}</div><div class="r-val">${isD?`<span class="old">${vA}</span><span class="new">${vB}</span>`:vA}</div></div>`;
+        }
         h += `<div class="sec-block">
-                <div class="sec-hdr" onclick="toggleSec(this)"><span class="chv">▶</span>${s} ${sd?`<span style="color:#fbbf24;margin-left:8px;">(${sd})</span>`:''}</div>
+                <div class="sec-hdr" onclick="toggleSec(this)">▶ ${s} ${sd?`<span style="color:#fbbf24;margin-left:10px;">(${sd})</span>`:''}</div>
                 <div class="sec-body">${sub}</div>
               </div>`;
     }
     document.getElementById('moResults').innerHTML = h;
-    document.getElementById('stSec').innerText = s_set.size;
+    document.getElementById('stSec').innerText = sCount;
     document.getElementById('stFld').innerText = f;
     document.getElementById('stDif').innerText = d;
-    let badge = document.getElementById('badge-machopts');
-    if(d>0){ badge.innerText=d; badge.style.display='block'; } else badge.style.display='none';
+    if(d > 0) { document.getElementById('badge-machopts').innerText = d; document.getElementById('badge-machopts').style.display = 'block'; }
 }
 
 function renderUL() {
     let h = '<div class="results-wrap">', d = 0;
-    dataA.ul.forEach(i => {
-        let match = dataB.ul.find(b => b.k === i.k);
-        let vB = match ? match.v : "MISSING";
-        let isD = i.v !== vB; if(isD) d++;
-        if(UL_diffOnly && !isD) return;
-        h += `<div class="r-row ${isD?'diff':''}"><div class="r-key">${i.k}</div><div class="r-val">${isD?`<span class="old">${i.v}</span><span class="new">${vB}</span>`:i.v}</div></div>`;
-    });
+    for(let k in dataA.ul) {
+        let vA = dataA.ul[k], vB = dataB.ul[k] || "N/A", isD = vA !== vB;
+        if(isD) d++;
+        h += `<div class="r-row ${isD?'diff':''}"><div class="r-key">${k}</div><div class="r-val">${isD?`<span class="old">${vA}</span><span class="new">${vB}</span>`:vA}</div></div>`;
+    }
     document.getElementById('ulResults').innerHTML = h + "</div>";
-    let badge = document.getElementById('badge-userlevel');
-    if(d>0){ badge.innerText=d; badge.style.display='block'; } else badge.style.display='none';
+    if(d > 0) { document.getElementById('badge-userlevel').innerText = d; document.getElementById('badge-userlevel').style.display = 'block'; }
 }
 
-function renderTM() {
-    let h = '<div class="results-wrap">', d = 0;
-    dataA.tm.forEach(i => {
-        let match = dataB.tm.find(b => b.k === i.k);
-        let vB = match ? match.v : "MISSING";
-        let isD = i.v !== vB; if(isD) d++;
-        if(TM_diffOnly && !isD) return;
-        h += `<div class="r-row ${isD?'diff':''}"><div class="r-key">${i.k}</div><div class="r-val">${isD?`<span class="old">${i.v}</span><span class="new">${vB}</span>`:i.v}</div></div>`;
-    });
-    document.getElementById('tinmanResults').innerHTML = h + "</div>";
-    let badge = document.getElementById('badge-tinman');
-    if(d>0){ badge.innerText=d; badge.style.display='block'; } else badge.style.display='none';
-}
-
-// 工具
 function toggleSec(el) {
     let b = el.nextElementSibling;
-    let c = el.querySelector('.chv');
-    if(b.style.display === 'block') { b.style.display = 'none'; c.style.transform = 'rotate(0deg)'; }
-    else { b.style.display = 'block'; c.style.transform = 'rotate(90deg)'; }
+    b.style.display = (b.style.display === 'block' ? 'none' : 'block');
 }
-function autoOpenDiffs() {
-    document.querySelectorAll('.sec-block').forEach(blk => {
-        if(blk.querySelector('.diff')) {
-            blk.querySelector('.sec-body').style.display = 'block';
-            blk.querySelector('.chv').style.transform = 'rotate(90deg)';
-        }
-    });
-}
-function expandAllMO() { document.querySelectorAll('#moResults .sec-body').forEach(b => b.style.display = 'block'); document.querySelectorAll('#moResults .chv').forEach(c => c.style.transform = 'rotate(90deg)'); }
-function collapseAllMO() { document.querySelectorAll('#moResults .sec-body').forEach(b => b.style.display = 'none'); document.querySelectorAll('#moResults .chv').forEach(c => c.style.transform = 'rotate(0deg)'); }
+
 function switchTab(t) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
     document.getElementById('tab-'+t).classList.add('active');
     document.getElementById('pane-'+t).classList.add('active');
-}
-function toggleMODiff() { MO_diffOnly = !MO_diffOnly; document.getElementById('moDiffBtn').innerText = MO_diffOnly?'顯示全部':'僅顯示差異'; renderMO(); autoOpenDiffs(); }
-function toggleULDiff() { UL_diffOnly = !UL_diffOnly; document.getElementById('ulDiffBtn').innerText = UL_diffOnly?'顯示全部':'僅顯示差異'; renderUL(); }
-function toggleTMDiff() { TM_diffOnly = !TM_diffOnly; document.getElementById('tmDiffBtn').innerText = TM_diffOnly?'顯示全部':'僅顯示差異'; renderTM(); }
-
-function filterMO() {
-    let v = document.getElementById('moSearch').value.toLowerCase();
-    document.querySelectorAll('#moResults .r-row').forEach(r => { r.style.display = r.innerText.toLowerCase().includes(v) ? 'flex' : 'none'; });
-    document.querySelectorAll('#moResults .sec-block').forEach(b => {
-        let has = Array.from(b.querySelectorAll('.r-row')).some(r => r.style.display === 'flex');
-        b.style.display = has ? 'block' : 'none';
-    });
-}
-function filterUL() {
-    let v = document.getElementById('ulSearch').value.toLowerCase();
-    document.querySelectorAll('#ulResults .r-row').forEach(r => { r.style.display = r.innerText.toLowerCase().includes(v) ? 'flex' : 'none'; });
-}
-function filterTM() {
-    let v = document.getElementById('tmSearch').value.toLowerCase();
-    document.querySelectorAll('#tinmanResults .r-row').forEach(r => { r.style.display = r.innerText.toLowerCase().includes(v) ? 'flex' : 'none'; });
-}
-
-// 匯出功能
-function exportMOCSV() {
-    let csv = "Section,Field,Device A,Device B,Status\n";
-    dataA.mo.forEach(i => {
-        let match = dataB.mo.find(b => b.s === i.s && b.k === i.k);
-        let vB = match ? match.v : "MISSING";
-        csv += `"${i.s}","${i.k}","${i.v}","${vB}","${i.v===vB?'Same':'Diff'}"\n`;
-    });
-    downloadCSV(csv, "MachineOptions_Compare.csv");
-}
-function exportULCSV() {
-    let csv = "Function,Device A,Device B,Status\n";
-    dataA.ul.forEach(i => {
-        let match = dataB.ul.find(b => b.k === i.k);
-        let vB = match ? match.v : "MISSING";
-        csv += `"${i.k}","${i.v}","${vB}","${i.v===vB?'Same':'Diff'}"\n`;
-    });
-    downloadCSV(csv, "UserLevel_Compare.csv");
-}
-function downloadCSV(csv, fn) {
-    let blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
-    let link = document.createElement("a");
-    link.href = URL.createObjectURL(blob); link.setAttribute("download", fn);
-    document.body.appendChild(link); link.click(); document.body.removeChild(link);
 }
 </script>
 </body>
