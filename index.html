@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CNC5000">
 <meta name="mobile-web-app-capable" content="yes">
-<title>CNC5000 Compare v5.9</title>
+<title>CNC5000 Compare v5.9.3</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -143,6 +143,28 @@ table.ct tr.diff:hover td{background:rgba(251,191,36,0.13);}
 /* iOS safe area */
 body{padding-bottom:env(safe-area-inset-bottom,0);}
 .footer{padding-bottom:calc(4px + env(safe-area-inset-bottom,0));}
+/* Installed PWA / “Add to Home Screen”: keep header & stats below status bar / notch */
+@media (display-mode:standalone),(display-mode:fullscreen){
+  .header{
+    padding-top:calc(12px + env(safe-area-inset-top, 0px));
+    padding-left:calc(20px + env(safe-area-inset-left, 0px));
+    padding-right:calc(20px + env(safe-area-inset-right, 0px));
+  }
+  #authOverlay{
+    padding-top:calc(20px + env(safe-area-inset-top, 0px));
+    padding-left:calc(20px + env(safe-area-inset-left, 0px));
+    padding-right:calc(20px + env(safe-area-inset-right, 0px));
+  }
+  .lov{padding-top:calc(180px + env(safe-area-inset-top, 0px));}
+}
+@media (max-width:640px) and (display-mode:standalone),(max-width:640px) and (display-mode:fullscreen){
+  .header{
+    padding-top:calc(8px + env(safe-area-inset-top, 0px));
+    padding-left:calc(10px + env(safe-area-inset-left, 0px));
+    padding-right:calc(10px + env(safe-area-inset-right, 0px));
+  }
+  .header-stats{width:100%;margin-left:0;margin-top:2px;}
+}
 /* Smooth scrolling */
 html{-webkit-overflow-scrolling:touch;}
 
@@ -219,7 +241,7 @@ html{-webkit-overflow-scrolling:touch;}
     <div class="auth-logo">
       <span class="auth-logo-icon">🔧</span>
       <div class="auth-logo-title">CNC5000 Compare</div>
-      <div class="auth-logo-sub">SAP_TW · v5.9</div>
+      <div class="auth-logo-sub">SAP_TW · v5.9.3</div>
     </div>
     <div id="authActivateSection">
       <div class="auth-field">
@@ -245,7 +267,7 @@ html{-webkit-overflow-scrolling:touch;}
    </div>
 
 <div class="header">
-  <div class="header-title">CNC5000 Compare <span style="font-size:13px;opacity:0.6;font-weight:400;">v5.9</span></div>
+  <div class="header-title">CNC5000 Compare <span style="font-size:13px;opacity:0.6;font-weight:400;">v5.9.3</span></div>
   <div class="header-stats" id="hStats" style="display:none;">
     區段 <span id="stSec">0</span> &nbsp;
     欄位 <span id="stFld">0</span> &nbsp;
@@ -343,7 +365,7 @@ html{-webkit-overflow-scrolling:touch;}
   </div><!-- /tabSection -->
 
 </div><!-- /main -->
-<div class="footer" style="display:flex;justify-content:center;align-items:center;gap:12px;">CNC5000 Compare v5.9 | SAP_TW</span>
+<div class="footer" style="display:flex;justify-content:center;align-items:center;gap:12px;">CNC5000 Compare v5.9.3 | SAP_TW</span>
 </div>
 
 <script>
@@ -363,52 +385,69 @@ firebase.initializeApp(firebaseConfig);
 
 // ══════════════ 驗證與啟動邏輯 ══════════════
 
+var AUTH_MAX_DEVICES = 3;
+
 async function authActivate() {
-    const email = document.getElementById('authEmail').value;
+    const email = document.getElementById('authEmail').value.trim();
     const code = document.getElementById('authCode').value;
-    const err = document.getElementById('authErr'); // 對應圖片中的錯誤顯示區
-    
+    const err = document.getElementById('authErr');
+    err.classList.remove('show');
+    err.innerText = '';
+
     if (!email || !code) {
-        err.innerText = "Please enter both Email and Code.";
+        err.innerText = 'Please enter both email and activation code.';
+        err.classList.add('show');
         return;
     }
 
     try {
-        // 1. Firebase 帳號密碼驗證 (將 Code 當作密碼)
         await firebase.auth().signInWithEmailAndPassword(email, code);
-        
-        // 2. 獲取裝置指紋 (deviceId)
+
         const fp = await FingerprintJS.load();
         const result = await fp.get();
         const deviceId = result.visitorId;
-        const safeEmail = email.replace(/\./g, ','); 
+        const safeEmail = email.replace(/\./g, ',');
 
-        // 3. 檢查資料庫裝置授權
         firebase.database().ref('users/' + safeEmail).once('value', (snap) => {
-            let userData = snap.val() || { devices: [] };
-            
-            if (userData.devices.includes(deviceId) || userData.devices.length < 2) {
-                // 如果是新裝置且名額未滿，則加入
-                if (!userData.devices.includes(deviceId)) {
-                    userData.devices.push(deviceId);
-                    firebase.database().ref('users/' + safeEmail).update({ devices: userData.devices });
+            var userData = snap.val() || { devices: [] };
+            var list = userData.devices || [];
+            if (!Array.isArray(list)) {
+                list = Object.keys(list).sort(function (a, b) { return Number(a) - Number(b); }).map(function (k) { return list[k]; }).filter(Boolean);
+            }
+
+            if (list.includes(deviceId) || list.length < AUTH_MAX_DEVICES) {
+                if (!list.includes(deviceId)) {
+                    list.push(deviceId);
+                    firebase.database().ref('users/' + safeEmail).update({ devices: list });
                 }
 
-                // 4. 成功：記錄狀態，下次免登入
                 localStorage.setItem('cnc5000_auth_success', 'true');
                 localStorage.setItem('cnc5000_auth_email', email);
 
-                // 5. 隱藏登入層，顯示主程式
                 document.getElementById('authOverlay').style.display = 'none';
                 document.getElementById('mainApp').style.display = 'block';
-                
             } else {
-                err.innerText = "Error: Device limit reached (Max: 2).";
+                err.innerText = 'This account is already registered on ' + AUTH_MAX_DEVICES + ' devices. Please contact your administrator.';
+                err.classList.add('show');
             }
         });
     } catch (error) {
         console.error(error);
-        err.innerText = "Invalid Email or Activation Code.";
+        var codeErr = error && error.code;
+        if (codeErr === 'auth/user-not-found') {
+            err.innerText = 'No account found for this email.';
+        } else if (codeErr === 'auth/wrong-password') {
+            err.innerText = 'Incorrect activation code.';
+        } else if (codeErr === 'auth/invalid-credential' || codeErr === 'auth/invalid-login-credentials') {
+            err.innerText = 'Incorrect email or activation code.';
+        } else if (codeErr === 'auth/invalid-email') {
+            err.innerText = 'Invalid email address.';
+        } else if (codeErr === 'auth/too-many-requests') {
+            err.innerText = 'Too many attempts. Please try again later.';
+        } else {
+            err.innerText = 'Sign-in failed. Please try again.';
+        }
+        err.classList.add('show');
     }
 }
 
