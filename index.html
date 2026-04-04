@@ -143,27 +143,44 @@ table.ct tr.diff:hover td{background:rgba(251,191,36,0.13);}
 /* iOS safe area */
 body{padding-bottom:env(safe-area-inset-bottom,0);}
 .footer{padding-bottom:calc(4px + env(safe-area-inset-bottom,0));}
-/* Installed PWA / “Add to Home Screen”: keep header & stats below status bar / notch */
-@media (display-mode:standalone),(display-mode:fullscreen){
-  .header{
-    padding-top:calc(180px + env(safe-area-inset-top, 20px));
-    padding-left:calc(20px + env(safe-area-inset-left, 0px));
-    padding-right:calc(20px + env(safe-area-inset-right, 0px));
+/* 1. 當網頁以全螢幕或 PWA 模式開啟時 */
+@media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
+  
+  .header {
+    /* iOS 的狀態欄在 PWA 模式下通常需要至少 30px-40px 的額外緩衝 */
+    padding-top: calc(45px + env(safe-area-inset-top, 0px));
+    padding-left: calc(20px + env(safe-area-inset-left, 0px));
+    padding-right: calc(20px + env(safe-area-inset-right, 0px));
   }
-  #authOverlay{
-    padding-top:calc(180px + env(safe-area-inset-top, 20px));
-    padding-left:calc(20px + env(safe-area-inset-left, 0px));
-    padding-right:calc(20px + env(safe-area-inset-right, 0px));
+
+  #authOverlay {
+    padding-top: calc(40px + env(safe-area-inset-top, 0px));
+    padding-left: calc(20px + env(safe-area-inset-left, 0px));
+    padding-right: calc(20px + env(safe-area-inset-right, 0px));
   }
-  .lov{padding-top:calc(180px + env(safe-area-inset-top, 20px));}
+
+  /* .lov 區塊通常是內容區，也要跟著往下移，避免被 Header 蓋住 */
+  .lov {
+    padding-top: calc(220px + env(safe-area-inset-top, 0px));
+  }
 }
-@media (max-width:640px) and (display-mode:standalone),(max-width:640px) and (display-mode:fullscreen){
-  .header{
-    padding-top:calc(180px + env(safe-area-inset-top, 20px));
-    padding-left:calc(10px + env(safe-area-inset-left, 0px));
-    padding-right:calc(10px + env(safe-area-inset-right, 0px));
+
+/* 2. 針對手機窄螢幕 (iPhone 等) 的特別優化 */
+@media (max-width: 640px) and (display-mode: standalone), 
+       (max-width: 640px) and (display-mode: fullscreen) {
+  
+  .header {
+    /* 手機上保留至少 40px 的空間可以確保標題在動態島下方 */
+    padding-top: calc(40px + env(safe-area-inset-top, 0px));
+    padding-left: 15px;
+    padding-right: 15px;
   }
-  .header-stats{width:100%;margin-left:0;margin-top:2px;}
+
+  .header-stats {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 10px; /* 增加一點間距讓視覺不擁擠 */
+  }
 }
 /* Smooth scrolling */
 html{-webkit-overflow-scrolling:touch;}
