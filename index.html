@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CNC5000">
 <meta name="mobile-web-app-capable" content="yes">
-<title>CNC5000 Compare v5.7</title>
+<title>CNC5000 Compare v5.9</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -67,7 +67,6 @@ html,body { margin:0;padding:0;font-family:'Segoe UI','Microsoft JhengHei',sans-
 .sec-hdr.collapsed .chv{transform:rotate(-90deg);}
 .sec-diff{font-size:10px;color:#fbbf24;background:rgba(251,191,36,0.08);padding:1px 7px;border-radius:8px;font-weight:500;}
 .sec-cnt{font-size:10px;color:#5f6380;font-weight:400;margin-left:auto;}
-.sec-body{}
 .sec-body.collapsed{display:none;}
 .sec-body{transition:none;}
 /* Compare table */
@@ -147,27 +146,106 @@ body{padding-bottom:env(safe-area-inset-bottom,0);}
 /* Smooth scrolling */
 html{-webkit-overflow-scrolling:touch;}
 
+/* ══════════════════════════════════
+   AUTH OVERLAY
+   ══════════════════════════════════ */
+#authOverlay{
+  position:fixed;inset:0;z-index:9000;
+  background:linear-gradient(135deg,#0a0c14 0%,#0f1117 60%,#131825 100%);
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;
+}
+.auth-box{
+  background:#1a1d27;border:1px solid #2e3244;border-radius:16px;
+  padding:32px 28px;width:100%;max-width:400px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5);
+}
+.auth-logo{text-align:center;margin-bottom:24px;}
+.auth-logo-icon{font-size:40px;display:block;margin-bottom:8px;}
+.auth-logo-title{font-size:18px;font-weight:700;color:#e4e6ef;letter-spacing:0.02em;}
+.auth-logo-sub{font-size:11px;color:#5f6380;margin-top:2px;}
+.auth-field{margin-bottom:14px;}
+.auth-field label{display:block;font-size:11px;color:#8b8fa7;margin-bottom:5px;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;}
+.auth-field input{
+  width:100%;padding:11px 14px;background:#0f1117;
+  border:1px solid #2e3244;border-radius:8px;
+  color:#e4e6ef;font-size:14px;font-family:inherit;outline:none;
+  transition:border-color .15s;
+  -webkit-appearance:none;
+  appearance:none;
+}
+.auth-field input:focus{border-color:#3b82f6;}
+.auth-btn{
+  width:100%;padding:13px;background:#3b82f6;border:none;border-radius:8px;
+  color:#fff;font-size:14px;font-weight:600;cursor:pointer;
+  font-family:inherit;margin-top:6px;
+  transition:background .15s;-webkit-tap-highlight-color:transparent;
+}
+.auth-btn:hover{background:#2563eb;}
+.auth-btn:active{background:#1d4ed8;}
+.auth-btn:disabled{background:#2e3244;color:#5f6380;cursor:not-allowed;}
+.auth-err{
+  background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);
+  border-radius:6px;padding:10px 12px;
+  font-size:12px;color:#fca5a5;margin-top:10px;text-align:center;
+  display:none;
+}
+.auth-err.show{display:block;}
+.auth-contact{
+  text-align:center;margin-top:18px;
+  font-size:12px;color:#5f6380;line-height:1.6;
+  border-top:1px solid #2e3244;padding-top:16px;
+}
+.auth-contact b{color:#e4e6ef;}
+.auth-timer{
+  text-align:center;font-size:12px;color:#f59e0b;
+  margin-top:8px;display:none;
+}
+.auth-success-overlay{
+  position:fixed;inset:0;z-index:8999;
+  background:#0f1117;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:12px;
+}
+.auth-success-icon{font-size:56px;}
+.auth-success-msg{font-size:16px;color:#22c55e;font-weight:600;}
 
 </style>
 </head>
 <body>
 
-<div id="authOverlay" style="position:fixed; inset:0; background:#0f1117; z-index:9999; display:flex; align-items:center; justify-content:center;">
-    <div style="background:#1a1d27; padding:40px; border-radius:16px; width:350px; border:1px solid #2e3244;">
-      <h2 style="margin-bottom:20px; text-align:center;">系統登入</h2>
-      <input type="email" id="authEmail" placeholder="Email" style="width:100%; padding:10px; margin-bottom:15px; background:#000; color:#fff; border:1px solid #2e3244;">
-      <input type="password" id="authCode" placeholder="啟用序號" style="width:100%; padding:10px; margin-bottom:20px; background:#000; color:#fff; border:1px solid #2e3244;">
-      <button onclick="handleActivation()" style="width:100%; padding:12px; background:#3b82f6; color:#fff; border:none; cursor:pointer; font-weight:bold;">驗證並啟動</button>
-      <div id="authMsg" style="color:#ef4444; font-size:12px; margin-top:15px; display:none; text-align:center;"></div>
+<!-- ══════════════ AUTH OVERLAY ══════════════ -->
+<div id="authOverlay" style="display:none;">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <span class="auth-logo-icon">🔧</span>
+      <div class="auth-logo-title">CNC5000 Compare</div>
+      <div class="auth-logo-sub">SAP_TW · v5.9</div>
+    </div>
+    <div id="authActivateSection">
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="email" id="authEmail" placeholder="your@email.com" autocomplete="email" autocapitalize="none">
+      </div>
+      <div class="auth-field">
+        <label>Activation Code</label>
+        <input type="text" id="authCode" placeholder="XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" maxlength="14">
+      </div>
+      <button class="auth-btn" id="authActivateBtn" onclick="authActivate()">Activate This Device</button>
+      <div class="auth-err" id="authErr"></div>
+      <div class="auth-timer" id="authTimer"></div>
+    </div>
+    <div class="auth-contact">
+      <b>To request access, please contact:</b><br>
+         Rene Lai · <a href="mailto:rene.lai@schmoll-asia.com" class="text-blue-400 hover:underline">rene.lai@schmoll-asia.com</a> 
     </div>
   </div>
+</div>
 
-  <div id="mainApp" style="display:none;">
-      
-      </div>
+<div id="mainApp" style="display:none;">
+   </div>
 
 <div class="header">
-  <div class="header-title">CNC5000 Compare <span style="font-size:13px;opacity:0.6;font-weight:400;">v5.7</span></div>
+  <div class="header-title">CNC5000 Compare <span style="font-size:13px;opacity:0.6;font-weight:400;">v5.9</span></div>
   <div class="header-stats" id="hStats" style="display:none;">
     區段 <span id="stSec">0</span> &nbsp;
     欄位 <span id="stFld">0</span> &nbsp;
@@ -258,51 +336,89 @@ html{-webkit-overflow-scrolling:touch;}
   </div><!-- /tabSection -->
 
 </div><!-- /main -->
-<div class="footer" style="display:flex;justify-content:center;align-items:center;gap:12px;">CNC5000 Compare v5.7 <span style="opacity:0.3;">|</span> <span style="opacity:0.5;font-size:10px;">Schmoll Maschinen GmbH · Parameter Comparison Tool</span></div>
+<div class="footer" style="display:flex;justify-content:center;align-items:center;gap:12px;">CNC5000 Compare v5.9 <span style="opacity:0.3;">|</span> <span style="opacity:0.5;font-size:10px;">SAP_TW</span></div>
 
 <script>
 // --- 直接把這段貼在 script 標籤內的最上方 ---
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-    apiKey: "AIzaSyAznXtBqrp8GDG6P387TXeuvHCiOQhJc4c",
-    authDomain: "cnc5000-62bea.firebaseapp.com",
-    databaseURL: "https://cnc5000-62bea-default-rtdb.firebaseio.com/",
-    projectId: "cnc5000-62bea",
-    storageBucket: "cnc5000-62bea.firebasestorage.app",
-    messagingSenderId: "197550131427",
-    appId: "1:197550131427:web:96da32dbabcb9d26359dd6"
+  apiKey: "AIzaSyAznXtBqrp8GDG6P387TXeuvHCiOQhJc4c",
+  authDomain: "cnc5000-62bea.firebaseapp.com",
+  databaseURL: "https://cnc5000-62bea-default-rtdb.firebaseio.com",
+  projectId: "cnc5000-62bea",
+  storageBucket: "cnc5000-62bea.firebasestorage.app",
+  messagingSenderId: "197550131427",
+  appId: "1:197550131427:web:96da32dbabcb9d26359dd6",
+  measurementId: "G-FNKYB4Y780"
 };
 firebase.initializeApp(firebaseConfig);
 
-async function handleActivation() {
+// ══════════════ 驗證與啟動邏輯 ══════════════
+
+async function authActivate() {
     const email = document.getElementById('authEmail').value;
     const code = document.getElementById('authCode').value;
-    const msg = document.getElementById('authMsg');
+    const err = document.getElementById('authErr'); // 對應圖片中的錯誤顯示區
+    
+    if (!email || !code) {
+        err.innerText = "Please enter both Email and Code.";
+        return;
+    }
+
     try {
+        // 1. Firebase 帳號密碼驗證 (將 Code 當作密碼)
         await firebase.auth().signInWithEmailAndPassword(email, code);
+        
+        // 2. 獲取裝置指紋 (deviceId)
         const fp = await FingerprintJS.load();
         const result = await fp.get();
         const deviceId = result.visitorId;
-        const safeEmail = email.replace(/\./g, ',');
+        const safeEmail = email.replace(/\./g, ','); 
+
+        // 3. 檢查資料庫裝置授權
         firebase.database().ref('users/' + safeEmail).once('value', (snap) => {
             let userData = snap.val() || { devices: [] };
+            
             if (userData.devices.includes(deviceId) || userData.devices.length < 2) {
+                // 如果是新裝置且名額未滿，則加入
                 if (!userData.devices.includes(deviceId)) {
                     userData.devices.push(deviceId);
                     firebase.database().ref('users/' + safeEmail).update({ devices: userData.devices });
                 }
+
+                // 4. 成功：記錄狀態，下次免登入
+                localStorage.setItem('cnc5000_auth_success', 'true');
+                localStorage.setItem('cnc5000_auth_email', email);
+
+                // 5. 隱藏登入層，顯示主程式
                 document.getElementById('authOverlay').style.display = 'none';
                 document.getElementById('mainApp').style.display = 'block';
+                
             } else {
-                msg.innerText = "驗證失敗：此帳號已在其他 2 台裝置上授權。";
-                msg.style.display = 'block';
+                err.innerText = "Error: Device limit reached (Max: 2).";
             }
         });
     } catch (error) {
-        msg.innerText = "驗證失敗：帳號或啟用碼錯誤。";
-        msg.style.display = 'block';
+        console.error(error);
+        err.innerText = "Invalid Email or Activation Code.";
     }
 }
-// --- 下方接著您原本的 function handleFile(side, input) { ... ---
+
+// ══════════════ 自動檢查登入狀態 ══════════════
+window.addEventListener('load', function() {
+    const isAuth = localStorage.getItem('cnc5000_auth_success');
+    const savedEmail = localStorage.getItem('cnc5000_auth_email');
+
+    if (isAuth === 'true' && savedEmail) {
+        // 已登入過，直接進入
+        document.getElementById('authOverlay').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+    } else {
+        // 未登入，顯示登入盒
+        document.getElementById('authOverlay').style.display = 'flex';
+        document.getElementById('mainApp').style.display = 'none';
+    }
+});
 </script>
 
 
@@ -333,6 +449,29 @@ window.onerror = function(msg,url,line,col,err) {
   try{alert(d);}catch(e){} return true;
 };
 window.onload = function(){
+// 網頁載入後自動執行
+window.addEventListener('load', function() {
+    const isAuth = localStorage.getItem('cnc5000_auth_success');
+    const savedEmail = localStorage.getItem('cnc5000_auth_email');
+
+    // 如果找到登入過的記錄
+    if (isAuth === 'true' && savedEmail) {
+        console.log("偵測到已登入狀態，自動跳過登入頁面");
+        
+        // 直接隱藏登入層，顯示主程式
+        if(document.getElementById('authOverlay')) {
+            document.getElementById('authOverlay').style.display = 'none';
+        }
+        if(document.getElementById('mainApp')) {
+            document.getElementById('mainApp').style.display = 'block';
+        }
+        
+        // 選填：如果想要自動帶入之前的 Email 到輸入框
+        if(document.getElementById('authEmail')) {
+            document.getElementById('authEmail').value = savedEmail;
+        }
+    }
+});
 };
 // Polyfills
 if(!Array.from){Array.from=function(o){var a=[];for(var i=0;i<o.length;i++)a.push(o[i]);return a;};}
