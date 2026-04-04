@@ -328,6 +328,13 @@ html{-webkit-overflow-scrolling:touch;}
 
     <!-- Tinman Tab -->
     <div class="tab-pane" id="pane-tinman">
+      <div class="toolbar" id="tmToolbar">
+        <div class="search-box"><input type="text" id="tmSearch" placeholder="搜尋項目或設定值..." onkeyup="filterTinman()" /></div>
+        <button class="tbtn" id="tmDiffBtn" onclick="toggleTinmanDiff()">僅顯示差異</button>
+        <button class="tbtn" onclick="expandAllTinman()">全部展開</button>
+        <button class="tbtn" onclick="collapseAllTinman()">全部收合</button>
+        <button class="expbtn" id="tmExportBtn" onclick="exportTinmanCSV()" disabled>匯出 CSV</button>
+      </div>
       <div class="results-wrap" id="tinmanResults">
         <div class="empty-state"><h3 style="color:#5f6380;">📂 載入兩個備份 ZIP 後自動顯示比較結果</h3></div>
       </div>
@@ -336,7 +343,8 @@ html{-webkit-overflow-scrolling:touch;}
   </div><!-- /tabSection -->
 
 </div><!-- /main -->
-<div class="footer" style="display:flex;justify-content:center;align-items:center;gap:12px;">CNC5000 Compare v5.9 <span style="opacity:0.3;">|</span> <span style="opacity:0.5;font-size:10px;">SAP_TW</span></div>
+<div class="footer" style="display:flex;justify-content:center;align-items:center;gap:12px;">CNC5000 Compare v5.9 | SAP_TW</span>
+</div>
 
 <script>
 // --- 直接把這段貼在 script 標籤內的最上方 ---
@@ -487,7 +495,7 @@ var G = {
   fA:null, fB:null,
   dataA:null, dataB:null,
   sdedLayout:null,
-  maDiffOnly:false, ulDiffOnly:false, flDiffOnly:false,
+  maDiffOnly:false, ulDiffOnly:false, flDiffOnly:false, tmDiffOnly:false,
   currentTab:'cncinfo',
   currentAxis:'X_01',
   mLabel:'', sLabel:''
@@ -538,6 +546,18 @@ function fmtV(v){
   return s;
 }
 function csvQ(v){ return '"'+String(v===undefined?'':v).replace(/"/g,'""')+'"'; }
+/** True if element is shown (not display:none on self or any ancestor). */
+function domRowVisible(el){
+  if(!el) return false;
+  for(var e=el;e&&e!==document.documentElement;e=e.parentElement){
+    if(e.style&&e.style.display==='none') return false;
+    try{
+      var st=window.getComputedStyle(e);
+      if(st.display==='none'||st.visibility==='hidden') return false;
+    }catch(x){return false;}
+  }
+  return true;
+}
 
 // ── isBitSet (IE11 safe) ──
 function isBitSet(valStr,bit){
@@ -1390,6 +1410,108 @@ function toggleULDiff(){
   var b=document.getElementById('ulDiffBtn');
   b.className=G.ulDiffOnly?'tbtn active':'tbtn'; filterUL();
 }
+function expandAllTinman(){
+  var root=document.getElementById('tinmanResults');
+  if(!root) return;
+  var hs=root.getElementsByClassName('sec-hdr'), bs=root.getElementsByClassName('sec-body');
+  for(var i=0;i<hs.length;i++) hs[i].className=hs[i].className.replace(/ ?collapsed/g,'');
+  for(var i=0;i<bs.length;i++) bs[i].className=bs[i].className.replace(/ ?collapsed/g,'');
+}
+function collapseAllTinman(){
+  var root=document.getElementById('tinmanResults');
+  if(!root) return;
+  var hs=root.getElementsByClassName('sec-hdr'), bs=root.getElementsByClassName('sec-body');
+  for(var i=0;i<hs.length;i++){if(hs[i].className.indexOf('collapsed')===-1)hs[i].className+=' collapsed';}
+  for(var i=0;i<bs.length;i++){if(bs[i].className.indexOf('collapsed')===-1)bs[i].className+=' collapsed';}
+}
+function toggleTinmanDiff(){
+  G.tmDiffOnly=!G.tmDiffOnly;
+  var b=document.getElementById('tmDiffBtn');
+  if(b) b.className=G.tmDiffOnly?'tbtn active':'tbtn';
+  filterTinman();
+}
+function filterTinman(){
+  var root=document.getElementById('tinmanResults');
+  if(!root) return;
+  var termEl=document.getElementById('tmSearch');
+  var term=(termEl&&termEl.value||'').toLowerCase().trim();
+  function filterRows(tbody, wrapEl){
+    if(!tbody) return;
+    var rows=tbody.getElementsByTagName('tr'), vis=0;
+    for(var r=0;r<rows.length;r++){
+      var row=rows[r];
+      if(row.className.indexOf('bm-sub')!==-1) continue;
+      var tbs=(row.getAttribute('data-tbs')||'').toLowerCase();
+      var desc=(row.getAttribute('data-desc')||'').toLowerCase();
+      var vA5=(row.getAttribute('data-vA')||'').toLowerCase();
+      var vB5=(row.getAttribute('data-vB')||'').toLowerCase();
+      var isDiff5=row.className.indexOf('diff')!==-1&&row.className.indexOf('bit-diff')===-1;
+      var mSrch=!term||tbs.indexOf(term)!==-1||desc.indexOf(term)!==-1||vA5.indexOf(term)!==-1||vB5.indexOf(term)!==-1;
+      var mDiff=!G.tmDiffOnly||isDiff5;
+      var show=mSrch&&mDiff;
+      row.style.display=show?'':'none';
+      if(show) vis++;
+    }
+    if(wrapEl) wrapEl.style.display=vis>0?'':'none';
+  }
+  var sum=root.getElementsByClassName('tm-summary-wrap')[0];
+  if(sum) filterRows(sum.getElementsByTagName('tbody')[0], sum);
+  var blocks=root.getElementsByClassName('sec-block');
+  for(var b=0;b<blocks.length;b++){
+    var blk=blocks[b], tbody=blk.getElementsByTagName('tbody')[0];
+    filterRows(tbody, blk);
+  }
+}
+function exportTinmanCSV(){
+  var root=document.getElementById('tinmanResults');
+  if(!root||!root.querySelector('tr[data-tbs]')) return;
+  var BOM='\uFEFF';
+  var csv=BOM+csvQ('區段')+','+csvQ('子區段')+','+csvQ('項目')+','+csvQ('設備A ('+G.mLabel+')')+','+csvQ('設備B ('+G.sLabel+')')+','+csvQ('是否差異')+'\n';
+  var section='Tinman 概覽', sub='';
+  function hdrTitle(h){
+    if(!h) return '';
+    var t=h.textContent||'';
+    return t.replace(/^[\s\u25B0-\u25FF\u9654-\u9655]+/,'').trim();
+  }
+  var sum=root.getElementsByClassName('tm-summary-wrap')[0];
+  if(sum){
+    var tb=sum.getElementsByTagName('tbody')[0];
+    if(tb){
+      var trs=tb.getElementsByTagName('tr');
+      for(var i=0;i<trs.length;i++){
+        var tr=trs[i], tbs=tr.getAttribute('data-tbs');
+        if(!tbs||!domRowVisible(tr)) continue;
+        var vA=tr.getAttribute('data-vA')||'', vB=tr.getAttribute('data-vB')||'';
+        var isDiff=tr.className.indexOf('diff')!==-1;
+        csv+=csvQ(section)+','+csvQ(sub)+','+csvQ(tbs)+','+csvQ(vA)+','+csvQ(vB)+','+csvQ(isDiff?'是':'否')+'\n';
+      }
+    }
+  }
+  var blocks=root.getElementsByClassName('sec-block');
+  for(var b=0;b<blocks.length;b++){
+    var blk=blocks[b];
+    var hdr=blk.getElementsByClassName('sec-hdr')[0];
+    section=hdrTitle(hdr)||section;
+    sub='';
+    var tbody=blk.getElementsByTagName('tbody')[0];
+    if(!tbody) continue;
+    var trs=tbody.getElementsByTagName('tr');
+    for(var r=0;r<trs.length;r++){
+      var tr=trs[r];
+      var tbs=tr.getAttribute('data-tbs');
+      if(!tbs){
+        var td=tr.getElementsByTagName('td')[0];
+        if(td&&String(td.getAttribute('colspan'))==='3') sub=(td.textContent||'').trim();
+        continue;
+      }
+      if(!domRowVisible(tr)) continue;
+      var vA=tr.getAttribute('data-vA')||'', vB=tr.getAttribute('data-vB')||'';
+      var isDiff=tr.className.indexOf('diff')!==-1&&tr.className.indexOf('bit-diff')===-1;
+      csv+=csvQ(section)+','+csvQ(sub)+','+csvQ(tbs)+','+csvQ(vA)+','+csvQ(vB)+','+csvQ(isDiff?'是':'否')+'\n';
+    }
+  }
+  saveCSV(csv,'tinman_'+G.mLabel+'_vs_'+G.sLabel+'.csv');
+}
 function filterUL(){
   var term=document.getElementById('ulSearch').value.toLowerCase().trim();
   var rows=document.getElementById('ulResults').getElementsByTagName('tr');
@@ -1409,36 +1531,54 @@ function filterUL(){
 
 function exportMOCSV(){
   if(!G.sdedLayout) return;
+  var root=document.getElementById('moResults');
+  if(!root) return;
   var BOM='\uFEFF';
   var csv=BOM+csvQ('區段')+','+csvQ('畫面名稱')+','+csvQ('tbsname')+','+csvQ('單位')+','+csvQ('設備A ('+G.mLabel+')')+','+csvQ('設備B ('+G.sLabel+')')+','+csvQ('是否差異')+'\n';
-  var bmA=G.dataA.bitmapDefs, bmB=G.dataB.bitmapDefs;
-  for(var si=0;si<G.sdedLayout.length;si++){
-    var sec=G.sdedLayout[si];
-    for(var ii=0;ii<sec.items.length;ii++){
-      var item=sec.items[ii], tbs=item.tbsname;
-      var vA=G.dataA.sdVals[tbs], vB=G.dataB.sdVals[tbs];
-      if(Array.isArray(vA)) vA=vA[0]; if(Array.isArray(vB)) vB=vB[0];
-      var isDiff=(vA!==undefined||vB!==undefined)&&(vA!==vB);
-      csv+=csvQ(sec.title)+','+csvQ(item.descEn||tbs)+','+csvQ(tbs)+','+csvQ(item.unit)+','+csvQ(fmtV(vA))+','+csvQ(fmtV(vB))+','+csvQ(isDiff?'是':'否')+'\n';
+  var layout=G.sdedLayout;
+  var blocks=root.getElementsByClassName('sec-block');
+  for(var b=0;b<blocks.length;b++){
+    var blk=blocks[b];
+    if(!domRowVisible(blk)) continue;
+    var si=parseInt(blk.getAttribute('data-si'),10);
+    var sec=layout[si];
+    if(!sec) continue;
+    var tbody=blk.getElementsByTagName('tbody')[0];
+    if(!tbody) continue;
+    var trs=tbody.getElementsByTagName('tr');
+    for(var r=0;r<trs.length;r++){
+      var tr=trs[r];
+      if(tr.className.indexOf('bm-sub')!==-1) continue;
+      var tbs=tr.getAttribute('data-tbs');
+      if(!tbs||!domRowVisible(tr)) continue;
+      var desc=tr.getAttribute('data-desc')||'';
+      var vA=tr.getAttribute('data-vA')||'';
+      var vB=tr.getAttribute('data-vB')||'';
+      var unitEl=tr.getElementsByClassName('fu')[0];
+      var unit=unitEl?(unitEl.textContent||'').trim():'';
+      var isDiff=tr.className.indexOf('diff')!==-1&&tr.className.indexOf('bit-diff')===-1;
+      csv+=csvQ(sec.title)+','+csvQ(desc)+','+csvQ(tbs)+','+csvQ(unit)+','+csvQ(vA)+','+csvQ(vB)+','+csvQ(isDiff?'是':'否')+'\n';
     }
   }
   saveCSV(csv,'machine_options_'+G.mLabel+'_vs_'+G.sLabel+'.csv');
 }
 
 function exportULCSV(){
+  var root=document.getElementById('ulResults');
+  if(!root) return;
   var BOM='\uFEFF';
   var csv=BOM+csvQ('Name')+','+csvQ('設備A Level ('+G.mLabel+')')+','+csvQ('設備B Level ('+G.sLabel+')')+','+csvQ('Group')+','+csvQ('是否差異')+'\n';
-  var recsA=G.dataA.authRecs, recsB=G.dataB.authRecs;
-  var mapA={}, mapB={};
-  for(var i=0;i<recsA.length;i++) mapA[recsA[i].Name]=recsA[i];
-  for(var i=0;i<recsB.length;i++) mapB[recsB[i].Name]=recsB[i];
-  var allN=[], seen={};
-  for(var i=0;i<recsA.length;i++){if(!seen[recsA[i].Name]){seen[recsA[i].Name]=1;allN.push(recsA[i].Name);}}
-  for(var i=0;i<recsB.length;i++){if(!seen[recsB[i].Name]){seen[recsB[i].Name]=1;allN.push(recsB[i].Name);}}
-  for(var i=0;i<allN.length;i++){
-    var n=allN[i], rA=mapA[n]||{}, rB=mapB[n]||{};
-    var lvA=rA.Level||'', lvB=rB.Level||'', isDiff=lvA!==lvB;
-    csv+=csvQ(n)+','+csvQ(lvA)+','+csvQ(lvB)+','+csvQ(rA.Group||rB.Group||'')+','+csvQ(isDiff?'是':'否')+'\n';
+  var trs=root.getElementsByTagName('tr');
+  for(var i=0;i<trs.length;i++){
+    var tr=trs[i];
+    var nm=tr.getAttribute('data-name');
+    if(!nm) continue;
+    if(!domRowVisible(tr)) continue;
+    var lvA=tr.getAttribute('data-lvA')||'';
+    var lvB=tr.getAttribute('data-lvB')||'';
+    var grp=tr.getAttribute('data-grp')||'';
+    var isDiff=tr.className.indexOf('diff')!==-1;
+    csv+=csvQ(nm)+','+csvQ(lvA)+','+csvQ(lvB)+','+csvQ(grp)+','+csvQ(isDiff?'是':'否')+'\n';
   }
   saveCSV(csv,'user_level_'+G.mLabel+'_vs_'+G.sLabel+'.csv');
 }
@@ -1559,12 +1699,12 @@ function renderTinman(){
     if(diff) TM_totalDiffs++;
     var ca=!vA?'fv-miss':(diff?'fv-diff':'fv-same');
     var cb=!vB?'fv-miss':(diff?'fv-diff':'fv-same');
-    return '<tr><td style="padding:5px 10px;color:#8b8fa7;font-size:11px;white-space:nowrap;">'+esc(label)+'</td>'
+    return '<tr class="'+(diff?'diff':'')+'" data-tbs="'+esc(label)+'" data-desc="'+esc(label)+'" data-vA="'+esc(vA)+'" data-vB="'+esc(vB)+'"><td style="padding:5px 10px;color:#8b8fa7;font-size:11px;white-space:nowrap;">'+esc(label)+'</td>'
       +'<td class="fv '+ca+'" style="padding:5px 10px;font-family:Consolas,monospace;">'+esc(vA||'—')+'</td>'
       +'<td class="fv '+cb+'" style="padding:5px 10px;font-family:Consolas,monospace;">'+esc(vB||'—')+'</td></tr>';
   }
 
-  html+='<div style="background:#1a1d27;border:1px solid #2e3244;border-radius:6px;margin-bottom:12px;overflow:hidden;">'
+  html+='<div class="tm-summary-wrap" style="background:#1a1d27;border:1px solid #2e3244;border-radius:6px;margin-bottom:12px;overflow:hidden;">'
     +'<div style="background:#252836;padding:6px 12px;display:flex;align-items:center;gap:10px;">'
     +'<span style="font-size:12px;font-weight:600;color:#e4e6ef;">Tinman 概覽</span>'
     +'</div>'
@@ -1824,14 +1964,15 @@ function renderTinman(){
     html+=secEnd();
   }
 
-  document.getElementById('tinmanResults').innerHTML=html||'<div class="empty-state"><h3>無 Tinman 資料</h3></div>';
+  var tmRoot=document.getElementById('tinmanResults');
+  tmRoot.innerHTML=html||'<div class="empty-state"><h3>無 Tinman 資料</h3></div>';
 
   // Badge
   var badge=document.getElementById('badge-tinman');
   if(TM_totalDiffs>0){badge.style.display='';badge.innerText=TM_totalDiffs;}
 
   // Auto-open sections with diffs
-  var _tmBlocks=document.getElementById('tinmanResults').getElementsByClassName('sec-block');
+  var _tmBlocks=tmRoot.getElementsByClassName('sec-block');
   for(var _tbi=0;_tbi<_tmBlocks.length;_tbi++){
     var _b=_tmBlocks[_tbi];
     if(_b.getElementsByClassName('diff').length>0){
@@ -1840,6 +1981,12 @@ function renderTinman(){
       if(_body){_body.style.display='block';if(_chv)_chv.style.transform='rotate(90deg)';}
     }
   }
+
+  var tmExport=document.getElementById('tmExportBtn');
+  if(tmExport) tmExport.disabled=!tmRoot.querySelector('tr[data-tbs]');
+  var tmDiffBtn=document.getElementById('tmDiffBtn');
+  if(tmDiffBtn) tmDiffBtn.className=G.tmDiffOnly?'tbtn active':'tbtn';
+  filterTinman();
 }
 
 
