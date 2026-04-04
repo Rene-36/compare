@@ -2,13 +2,13 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CNC5000">
 <meta name="mobile-web-app-capable" content="yes">
-<title>CNC5000 Compare v5.9.3</title>
+<title>CNC5000 Compare v5.9.5</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -119,7 +119,8 @@ table.ct tr.diff:hover td{background:rgba(251,191,36,0.13);}
 /* ── Mobile responsive ── */
 @media(max-width:640px){
   html,body{font-size:12px;}
-  .header{padding:8px 10px;flex-wrap:wrap;gap:6px;}
+  /* 注意：這裡的 padding 會套用到所有手機瀏覽器 */
+  .header{padding: 8px 10px; flex-wrap:wrap; gap:6px;}
   .header-title{font-size:13px;}
   .main{padding:6px;}
   .upload-section{flex-direction:column;gap:8px;}
@@ -140,51 +141,54 @@ table.ct tr.diff:hover td{background:rgba(251,191,36,0.13);}
 /* Touch-friendly upload */
 .upload-card{position:relative;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 .upload-card input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;z-index:2;width:100%;height:100%;}
-/* iOS safe area */
+
+/* iOS safe area bottom */
 body{padding-bottom:env(safe-area-inset-bottom,0);}
 .footer{padding-bottom:calc(4px + env(safe-area-inset-bottom,0));}
-/* 1. 當網頁以全螢幕或 PWA 模式開啟時 */
+
+/* ============================================================
+   重點修改：針對 PWA / 加入主畫面模式
+   ============================================================ */
 @media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
   
-  .header {
-    /* iOS 的狀態欄在 PWA 模式下通常需要至少 30px-40px 的額外緩衝 */
-    padding-top: calc(45px + env(safe-area-inset-top, 0px));
+  /* 使用 body .header 增加權重，確保蓋過上面的 8px 10px */
+  body .header {
+    /* 這裡數值調高到 50px，加上 iOS 內建 safe-area 大約會有 90px 左右的空間 */
+    padding-top: calc(50px + env(safe-area-inset-top, 0px)) !important;
+    padding-left: calc(20px + env(safe-area-inset-left, 0px));
+    padding-right: calc(20px + env(safe-area-inset-right, 0px));
+    padding-bottom: 15px;
+    height: auto !important; 
+  }
+
+  body #authOverlay {
+    padding-top: calc(50px + env(safe-area-inset-top, 0px)) !important;
     padding-left: calc(20px + env(safe-area-inset-left, 0px));
     padding-right: calc(20px + env(safe-area-inset-right, 0px));
   }
 
-  #authOverlay {
-    padding-top: calc(40px + env(safe-area-inset-top, 0px));
-    padding-left: calc(20px + env(safe-area-inset-left, 0px));
-    padding-right: calc(20px + env(safe-area-inset-right, 0px));
-  }
-
-  /* .lov 區塊通常是內容區，也要跟著往下移，避免被 Header 蓋住 */
-  .lov {
-    padding-top: calc(220px + env(safe-area-inset-top, 0px));
+  body .lov {
+    /* 這裡也要同步往下推，避免內容撞到 header */
+    padding-top: calc(220px + env(safe-area-inset-top, 0px)) !important;
   }
 }
 
-/* 2. 針對手機窄螢幕 (iPhone 等) 的特別優化 */
-@media (max-width: 640px) and (display-mode: standalone), 
-       (max-width: 640px) and (display-mode: fullscreen) {
-  
-  .header {
-    /* 手機上保留至少 40px 的空間可以確保標題在動態島下方 */
-    padding-top: calc(40px + env(safe-area-inset-top, 0px));
+/* 針對小螢幕 PWA 的額外覆寫 */
+@media (max-width: 640px) and (display-mode: standalone) {
+  body .header {
+    padding-top: calc(50px + env(safe-area-inset-top, 0px)) !important;
     padding-left: 15px;
     padding-right: 15px;
   }
-
   .header-stats {
     width: 100%;
     margin-left: 0;
-    margin-top: 10px; /* 增加一點間距讓視覺不擁擠 */
+    margin-top: 10px;
   }
 }
+
 /* Smooth scrolling */
 html{-webkit-overflow-scrolling:touch;}
-
 /* ══════════════════════════════════
    AUTH OVERLAY
    ══════════════════════════════════ */
@@ -258,7 +262,7 @@ html{-webkit-overflow-scrolling:touch;}
     <div class="auth-logo">
       <span class="auth-logo-icon">🔧</span>
       <div class="auth-logo-title">CNC5000 Compare</div>
-      <div class="auth-logo-sub">SAP_TW · v5.9.3</div>
+      <div class="auth-logo-sub">SAP_TW · v5.9.5</div>
     </div>
     <div id="authActivateSection">
       <div class="auth-field">
@@ -284,7 +288,7 @@ html{-webkit-overflow-scrolling:touch;}
    </div>
 
 <div class="header">
-  <div class="header-title">CNC5000 Compare <span style="font-size:13px;opacity:0.6;font-weight:400;">v5.9.3</span></div>
+  <div class="header-title">CNC5000 Compare <span style="font-size:13px;opacity:0.6;font-weight:400;">v5.9.5</span></div>
   <div class="header-stats" id="hStats" style="display:none;">
     區段 <span id="stSec">0</span> &nbsp;
     欄位 <span id="stFld">0</span> &nbsp;
@@ -382,7 +386,7 @@ html{-webkit-overflow-scrolling:touch;}
   </div><!-- /tabSection -->
 
 </div><!-- /main -->
-<div class="footer" style="display:flex;justify-content:center;align-items:center;gap:12px;">CNC5000 Compare v5.9.3 | SAP_TW</span>
+<div class="footer" style="display:flex;justify-content:center;align-items:center;gap:12px;">CNC5000 Compare v5.9.5 | SAP_TW</span>
 </div>
 
 <script>
