@@ -1609,6 +1609,26 @@ function renderTinman(){
     var col=side==='A'?'#22c55e':'#60a5fa';
     return '<tr><td colspan="3" style="background:#1a2a1a;color:'+col+';font-size:10px;padding:3px 10px;">▷ 僅 '+side+' 有此裝置: '+esc(label)+'</td></tr>';
   }
+  function renderCamSec(secLabel, csA2, csB2, secKey) {
+    var fA=csA2[secKey]||{}, fB=csB2[secKey]||{};
+    var allTags={}, tagOrder=[];
+    for(var t in fA){if(!allTags[t]){allTags[t]=1;tagOrder.push(t);}}
+    for(var t in fB){if(!allTags[t]){allTags[t]=1;tagOrder.push(t);}}
+    var SKIP=/^(imagetype|imagecount|imageselect|useimagefile|graylevelprofiles|curveprofiles|files|shadow_files)$/;
+    var rowsHtml='';
+    for(var ti=0;ti<tagOrder.length;ti++){
+      var tag=tagOrder[ti];
+      if(SKIP.test(tag)) continue;
+      var iA=fA[tag]||{}, iB=fB[tag]||{};
+      var vA3=iA.val!==undefined?iA.val:'', vB3=iB.val!==undefined?iB.val:'';
+      if(vA3===''&&vB3==='') continue;
+      var unit=iA.unit||iB.unit||'';
+      var lbl=tag+(unit?' ('+unit+')':'');
+      rowsHtml+=row(lbl, vA3, vB3);
+    }
+    if(!rowsHtml) return '';
+    return groupHdr(secLabel)+rowsHtml;
+  }
 
   // ─────────────────────────────────────────
   // Section 1: Tinman Core 系統設定
@@ -1709,27 +1729,6 @@ function renderTinman(){
       // ── Unified rendering: all sections, all cameras ──
       var activeTypeA = (csA.common&&csA.common.activedevicetype)?csA.common.activedevicetype.val:'';
       var activeTypeB = (csB.common&&csB.common.activedevicetype)?csB.common.activedevicetype.val:'';
-
-      function renderCamSec(secLabel, csA2, csB2, secKey) {
-        var fA=csA2[secKey]||{}, fB=csB2[secKey]||{};
-        var allTags={}, tagOrder=[];
-        for(var t in fA){if(!allTags[t]){allTags[t]=1;tagOrder.push(t);}}
-        for(var t in fB){if(!allTags[t]){allTags[t]=1;tagOrder.push(t);}}
-        var SKIP=/^(imagetype|imagecount|imageselect|useimagefile|graylevelprofiles|curveprofiles|files|shadow_files)$/;
-        var rowsHtml='';
-        for(var ti=0;ti<tagOrder.length;ti++){
-          var tag=tagOrder[ti];
-          if(SKIP.test(tag)) continue;
-          var iA=fA[tag]||{}, iB=fB[tag]||{};
-          var vA3=iA.val!==undefined?iA.val:'', vB3=iB.val!==undefined?iB.val:'';
-          if(vA3===''&&vB3==='') continue;
-          var unit=iA.unit||iB.unit||'';
-          var lbl=tag+(unit?' ('+unit+')':'');
-          rowsHtml+=row(lbl, vA3, vB3);
-        }
-        if(!rowsHtml) return '';
-        return groupHdr(secLabel)+rowsHtml;
-      }
 
       var SEC_DEFS=[
         ['imagedata',  'Image Data 影像設定'],
