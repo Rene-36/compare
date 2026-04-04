@@ -146,20 +146,20 @@ body{padding-bottom:env(safe-area-inset-bottom,0);}
 /* Installed PWA / “Add to Home Screen”: keep header & stats below status bar / notch */
 @media (display-mode:standalone),(display-mode:fullscreen){
   .header{
-    padding-top:calc(12px + env(safe-area-inset-top, 0px));
+    padding-top:calc(12px + env(safe-area-inset-top, 20px));
     padding-left:calc(20px + env(safe-area-inset-left, 0px));
     padding-right:calc(20px + env(safe-area-inset-right, 0px));
   }
   #authOverlay{
-    padding-top:calc(20px + env(safe-area-inset-top, 0px));
+    padding-top:calc(20px + env(safe-area-inset-top, 20px));
     padding-left:calc(20px + env(safe-area-inset-left, 0px));
     padding-right:calc(20px + env(safe-area-inset-right, 0px));
   }
-  .lov{padding-top:calc(180px + env(safe-area-inset-top, 0px));}
+  .lov{padding-top:calc(180px + env(safe-area-inset-top, 20px));}
 }
 @media (max-width:640px) and (display-mode:standalone),(max-width:640px) and (display-mode:fullscreen){
   .header{
-    padding-top:calc(8px + env(safe-area-inset-top, 0px));
+    padding-top:calc(8px + env(safe-area-inset-top, 20px));
     padding-left:calc(10px + env(safe-area-inset-left, 0px));
     padding-right:calc(10px + env(safe-area-inset-right, 0px));
   }
